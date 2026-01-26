@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Shot Tracker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --saw: #4472C4;
+            --saw-light: #DEEBF7;
+            --line: #70AD47;
+            --line-light: #E2EFDA;
+            --release: #7030A0;
+            --release-light: #E4DFEC;
+            --state: #ED7D31;
+            --state-light: #FCE4D6;
+            --bg: #f5f5f5;
+            --card: #ffffff;
+            --border: #ddd;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #4472C4, #2c5aa0);
+            color: white;
+            padding: 12px 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+        
+        .header select {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-right: 8px;
+            max-width: 200px;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .btn-new { background: #70AD47; color: white; }
+        .btn-print { background: white; color: #333; }
+        .btn-delete { background: #e74c3c; color: white; }
+        .btn-small { padding: 6px 10px; font-size: 12px; }
+        
+        /* Main content */
+        .main {
+            padding: 10px;
+            padding-bottom: 80px;
+        }
+        
+        /* Equipment Card */
+        .equipment-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .equipment-card h2 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .equipment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .equipment-grid.three-col {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        
+        .field {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .field label {
+            font-size: 11px;
+            color: #888;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        
+        .field input,
+        .field select {
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fafafa;
+        }
+        
+        .field input:focus,
+        .field select:focus {
+            outline: none;
+            border-color: var(--saw);
+            background: white;
+        }
+        
+        /* Shot Card */
+        .shot-card {
+            background: var(--card);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .shot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f8f8f8;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .shot-id {
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .shot-quick-view {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .shot-body {
+            padding: 12px;
+        }
+        
+        /* Section in shot card */
+        .section {
+            margin-bottom: 12px;
+        }
+        
+        .section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .section-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        
+        .section-label.saw { background: var(--saw); color: white; }
+        .section-label.line { background: var(--line); color: white; }
+        .section-label.release { background: var(--release); color: white; }
+        .section-label.state { background: var(--state); color: white; }
+        
+        /* Tap buttons for selection */
+        .tap-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        
+        .tap-group-label {
+            font-size: 11px;
+            color: #666;
+            width: 100%;
+            margin-bottom: 2px;
+        }
+        
+        .tap-btn {
+            min-width: 40px;
+            padding: 10px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        
+        .tap-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .tap-btn.selected {
+            border-color: var(--saw);
+            background: var(--saw-light);
+            color: var(--saw);
+        }
+        
+        .tap-btn.selected.line-sel {
+            border-color: var(--line);
+            background: var(--line-light);
+            color: var(--line);
+        }
+        
+        .tap-btn.selected.release-sel {
+            border-color: var(--release);
+            background: var(--release-light);
+            color: var(--release);
+        }
+        
+        .tap-btn.selected.state-sel {
+            border-color: var(--state);
+            background: var(--state-light);
+            color: var(--state);
+        }
+        
+        .tap-btn.mood {
+            font-size: 20px;
+            padding: 8px 14px;
+        }
+        
+        /* Number input row */
+        .num-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .num-label {
+            font-size: 12px;
+            color: #666;
+            min-width: 40px;
+        }
+        
+        .num-btn {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .num-btn:active {
+            background: #eee;
+        }
+        
+        .num-display {
+            width: 50px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        
+        /* Notes input */
+        .notes-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fafafa;
+            margin-top: 8px;
+        }
+        
+        .notes-input:focus {
+            outline: none;
+            border-color: var(--saw);
+            background: white;
+        }
+        
+        /* Video check buttons */
+        .video-check {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .video-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .video-btn.v-selected {
+            border-color: #27ae60;
+            background: #e8f8f0;
+            color: #27ae60;
+        }
+        
+        .video-btn.x-selected {
+            border-color: #e74c3c;
+            background: #fdeaea;
+            color: #e74c3c;
+        }
+        
+        /* Ball change section */
+        .ball-change-card {
+            background: #fff8e1;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .ball-change-card h2 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #f57c00;
+        }
+        
+        .ball-change-entry {
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            border: 1px solid #ffe0b2;
+        }
+        
+        .ball-change-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .ball-change-row .field {
+            flex: 1;
+            min-width: 80px;
+        }
+        
+        .ball-change-row input,
+        .ball-change-row select {
+            padding: 8px;
+            font-size: 13px;
+        }
+        
+        .remove-btn {
+            background: #ffcdd2;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #c62828;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        
+        .add-btn {
+            width: 100%;
+            padding: 12px;
+            background: #fff3e0;
+            border: 2px dashed #ffb74d;
+            border-radius: 8px;
+            color: #f57c00;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        /* Quick ref */
+        .quick-ref {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            font-size: 11px;
+            color: #666;
+        }
+        
+        .quick-ref strong {
+            color: #333;
+        }
+        
+        /* Status toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 13px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        /* Collapsed shot card */
+        .shot-card.collapsed .shot-body {
+            display: none;
+        }
+        
+        .shot-card .expand-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                background: white;
+                font-size: 10px;
+            }
+            
+            .header,
+            .btn,
+            .add-btn,
+            .remove-btn,
+            .expand-btn,
+            .toast {
+                display: none !important;
+            }
+            
+            .main {
+                padding: 0;
+            }
+            
+            .shot-card,
+            .equipment-card,
+            .ball-change-card,
+            .quick-ref {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+                margin-bottom: 5px;
+            }
+            
+            .shot-card.collapsed .shot-body {
+                display: block !important;
+            }
+            
+            .tap-btn {
+                padding: 4px 8px;
+                min-width: 30px;
+                font-size: 10px;
+            }
+            
+            .tap-btn:not(.selected) {
+                opacity: 0.3;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎳 Shot Tracker</h1>
+        <div class="header-row">
+            <select id="gameSelector" onchange="loadGame(this.value)">
+                <option value="">-- Select Game --</option>
+            </select>
+            <div class="header-buttons">
+                <button class="btn btn-new btn-small" onclick="newGame()">+ New</button>
+                <button class="btn btn-print btn-small" onclick="window.print()">🖨️</button>
+                <button class="btn btn-delete btn-small" onclick="deleteGame()">🗑️</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main">
+        <!-- Equipment -->
+        <div class="equipment-card">
+            <h2>Equipment</h2>
+            <div class="equipment-grid">
+                <div class="field">
+                    <label>Date</label>
+                    <input type="date" id="gameDate" onchange="saveGame()">
+                </div>
+                <div class="field">
+                    <label>Lane</label>
+                    <input type="text" id="lane" placeholder="#" onchange="saveGame()">
+                </div>
+            </div>
+            <div class="equipment-grid" style="margin-top:10px">
+                <div class="field" style="grid-column: span 2">
+                    <label>Ball</label>
+                    <input type="text" id="ball" placeholder="Ball name" onchange="saveGame()">
+                </div>
+            </div>
+            <div class="equipment-grid three-col" style="margin-top:10px">
+                <div class="field">
+                    <label>Pin</label>
+                    <select id="pin" onchange="saveGame()">
+                        <option value="">-</option>
+                        <option value="U">Up</option>
+                        <option value="D">Down</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Cover</label>
+                    <select id="cover" onchange="saveGame()">
+                        <option value="">-</option>
+                        <option value="P">Pearl</option>
+                        <option value="S">Solid</option>
+                        <option value="H">Hybrid</option>
+                        <option value="U">Urethane</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Surface</label>
+                    <select id="surface" onchange="saveGame()">
+                        <option value="">-</option>
+                        <option value="500">500</option>
+                        <option value="1000">1000</option>
+                        <option value="2000">2000</option>
+                        <option value="3000">3000</option>
+                        <option value="4000">4000</option>
+                        <option value="5000">5000</option>
+                        <option value="polish">Polish</option>
+                    </select>
+                </div>
+            </div>
+            <div class="equipment-grid" style="margin-top:10px">
+                <div class="field" style="grid-column: span 2">
+                    <label>Layout</label>
+                    <select id="layout" onchange="saveGame()">
+                        <option value="">-</option>
+                        <option value="50x5x40">50° x 5" x 40°</option>
+                        <option value="60x5x30">60° x 5" x 30°</option>
+                        <option value="70x4x50">70° x 4" x 50°</option>
+                        <option value="45x4.5x45">45° x 4.5" x 45°</option>
+                        <option value="pin-up">Pin Up (simple)</option>
+                        <option value="pin-down">Pin Down (simple)</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Shots container -->
+        <div id="shotsContainer"></div>
+        
+        <!-- Ball Changes -->
+        <div class="ball-change-card">
+            <h2>⚾ Ball Changes</h2>
+            <div id="ballChanges"></div>
+            <button class="add-btn" onclick="addBallChange()">+ Add Ball Change</button>
+        </div>
+        
+        <!-- Quick Reference -->
+        <div class="quick-ref">
+            <strong>Codes:</strong> D/H/S: -2 to +2 (0=expected) | 
+            Feet/Tgt: boards moved (−left, +right) | 
+            Loft: 0=line, 1=mid, 2=deep | 
+            Axis: 0°/45°/90° | 
+            Hand: S=soft, H=hard
+        </div>
+    </div>
+    
+    <div class="toast" id="toast">Saved</div>
+    
+    <script>
+        const STORAGE_KEY = 'bowling_v2_';
+        let currentGameId = null;
+        let gameData = {};
+        
+        // Frame structure
+        const frames = [];
+        for (let f = 1; f <= 9; f++) {
+            frames.push({frame: f, shots: [1, 2]});
+        }
+        frames.push({frame: 10, shots: [1, 2, 3]});
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('gameDate').valueAsDate = new Date();
+            renderShots();
+            updateGameSelector();
+            
+            // Load most recent game
+            const games = getSavedGames();
+            if (games.length > 0) {
+                loadGame(games[0].id);
+            } else {
+                newGame();
+            }
+        });
+        
+        function renderShots() {
+            const container = document.getElementById('shotsContainer');
+            container.innerHTML = '';
+            
+            frames.forEach(f => {
+                f.shots.forEach(s => {
+                    const card = createShotCard(f.frame, s);
+                    container.appendChild(card);
+                });
+            });
+        }
+        
+        function createShotCard(frame, shot) {
+            const id = `f${frame}s${shot}`;
+            const card = document.createElement('div');
+            card.className = 'shot-card collapsed';
+            card.id = `card_${id}`;
+            
+            card.innerHTML = `
+                <div class="shot-header" onclick="toggleCard('${id}')">
+                    <span class="shot-id">Frame ${frame} - Shot ${shot}</span>
+                    <span class="shot-quick-view" id="qv_${id}"></span>
+                    <button class="expand-btn">▼</button>
+                </div>
+                <div class="shot-body">
+                    <!-- SAW -->
+                    <div class="section">
+                        <div class="section-label saw">SAW</div>
+                        <div class="tap-group">
+                            <span class="tap-group-label">D (Direction) ←- 0 +→</span>
+                            ${[-2,-1,0,1,2].map(v => `<button class="tap-btn" data-field="${id}_D" data-value="${v}" onclick="tapSelect(this)">${v > 0 ? '+'+v : v}</button>`).join('')}
+                        </div>
+                        <div class="tap-group">
+                            <span class="tap-group-label">H (Hook) -Late 0 +Early</span>
+                            ${[-2,-1,0,1,2].map(v => `<button class="tap-btn" data-field="${id}_H" data-value="${v}" onclick="tapSelect(this)">${v > 0 ? '+'+v : v}</button>`).join('')}
+                        </div>
+                        <div class="tap-group">
+                            <span class="tap-group-label">S (Speed) -Slow 0 +Fast</span>
+                            ${[-2,-1,0,1,2].map(v => `<button class="tap-btn" data-field="${id}_S" data-value="${v}" onclick="tapSelect(this)">${v > 0 ? '+'+v : v}</button>`).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- LINE -->
+                    <div class="section">
+                        <div class="section-label line">LINE</div>
+                        <div class="num-row">
+                            <span class="num-label">Feet</span>
+                            <button class="num-btn" onclick="adjustNum('${id}_Feet', -1)">−</button>
+                            <input type="text" class="num-display" id="${id}_Feet" value="0" readonly>
+                            <button class="num-btn" onclick="adjustNum('${id}_Feet', 1)">+</button>
+                            <span style="font-size:11px;color:#888">←- +→</span>
+                        </div>
+                        <div class="num-row">
+                            <span class="num-label">Tgt</span>
+                            <button class="num-btn" onclick="adjustNum('${id}_Tgt', -1)">−</button>
+                            <input type="text" class="num-display" id="${id}_Tgt" value="0" readonly>
+                            <button class="num-btn" onclick="adjustNum('${id}_Tgt', 1)">+</button>
+                            <span style="font-size:11px;color:#888">←- +→</span>
+                        </div>
+                        <div class="tap-group">
+                            <span class="tap-group-label">Loft</span>
+                            ${['0','1','2'].map(v => `<button class="tap-btn line-sel" data-field="${id}_Loft" data-value="${v}" onclick="tapSelect(this)">${v === '0' ? '0 Line' : v === '1' ? '1 Mid' : '2 Deep'}</button>`).join('')}
+                        </div>
+                    </div>
+                    
+                    <!-- RELEASE -->
+                    <div class="section">
+                        <div class="section-label release">RELEASE</div>
+                        <div class="tap-group">
+                            <span class="tap-group-label">Axis</span>
+                            ${['0','45','90'].map(v => `<button class="tap-btn release-sel" data-field="${id}_Axis" data-value="${v}" onclick="tapSelect(this)">${v}°</button>`).join('')}
+                        </div>
+                        <div class="tap-group">
+                            <span class="tap-group-label">Pinky Curl</span>
+                            ${['0','1','2'].map(v => `<button class="tap-btn release-sel" data-field="${id}_Pky" data-value="${v}" onclick="tapSelect(this)">${v === '0' ? '0 None' : v === '1' ? '1 Some' : '2 Full'}</button>`).join('')}
+                        </div>
+                        <div class="tap-group">
+                            <span class="tap-group-label">Hand</span>
+                            <button class="tap-btn release-sel" data-field="${id}_Hand" data-value="S" onclick="tapSelect(this)">S Soft</button>
+                            <button class="tap-btn release-sel" data-field="${id}_Hand" data-value="H" onclick="tapSelect(this)">H Hard</button>
+                        </div>
+                    </div>
+                    
+                    <!-- STATE -->
+                    <div class="section">
+                        <div class="section-label state">STATE</div>
+                        <div class="tap-group">
+                            <span class="tap-group-label">Mood</span>
+                            <button class="tap-btn mood state-sel" data-field="${id}_Mood" data-value="😊" onclick="tapSelect(this)">😊</button>
+                            <button class="tap-btn mood state-sel" data-field="${id}_Mood" data-value="😐" onclick="tapSelect(this)">😐</button>
+                            <button class="tap-btn mood state-sel" data-field="${id}_Mood" data-value="😤" onclick="tapSelect(this)">😤</button>
+                        </div>
+                        <div class="tap-group">
+                            <span class="tap-group-label">Confidence</span>
+                            <button class="tap-btn state-sel" data-field="${id}_Conf" data-value="H" onclick="tapSelect(this)">H High</button>
+                            <button class="tap-btn state-sel" data-field="${id}_Conf" data-value="M" onclick="tapSelect(this)">M Med</button>
+                            <button class="tap-btn state-sel" data-field="${id}_Conf" data-value="L" onclick="tapSelect(this)">L Low</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Notes & Video -->
+                    <div class="section">
+                        <input type="text" class="notes-input" id="${id}_Notes" placeholder="Notes..." onchange="saveGame()">
+                        <div class="video-check">
+                            <button class="video-btn" id="${id}_V" onclick="videoCheck('${id}', 'V')">✓ Video Match</button>
+                            <button class="video-btn" id="${id}_X" onclick="videoCheck('${id}', 'X')">✗ Misread</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        function toggleCard(id) {
+            const card = document.getElementById(`card_${id}`);
+            card.classList.toggle('collapsed');
+            updateQuickView(id);
+        }
+        
+        function tapSelect(btn) {
+            const field = btn.dataset.field;
+            const value = btn.dataset.value;
+            
+            // Deselect siblings
+            const siblings = document.querySelectorAll(`[data-field="${field}"]`);
+            siblings.forEach(s => s.classList.remove('selected'));
+            
+            // Select this one
+            btn.classList.add('selected');
+            
+            // Save
+            gameData[field] = value;
+            saveGame();
+            
+            // Update quick view
+            const id = field.split('_').slice(0, -1).join('_');
+            updateQuickView(id.replace('f', '').replace('s', '_'));
+        }
+        
+        function adjustNum(field, delta) {
+            const input = document.getElementById(field);
+            let val = parseInt(input.value) || 0;
+            val += delta;
+            val = Math.max(-10, Math.min(10, val));
+            input.value = val;
+            gameData[field] = val;
+            saveGame();
+        }
+        
+        function videoCheck(id, type) {
+            const vBtn = document.getElementById(`${id}_V`);
+            const xBtn = document.getElementById(`${id}_X`);
+            
+            if (type === 'V') {
+                vBtn.classList.toggle('v-selected');
+                xBtn.classList.remove('x-selected');
+                gameData[`${id}_Video`] = vBtn.classList.contains('v-selected') ? 'V' : '';
+            } else {
+                xBtn.classList.toggle('x-selected');
+                vBtn.classList.remove('v-selected');
+                gameData[`${id}_Video`] = xBtn.classList.contains('x-selected') ? 'X' : '';
+            }
+            saveGame();
+        }
+        
+        function updateQuickView(shotId) {
+            const id = `f${shotId.replace('_', 's')}`;
+            const qv = document.getElementById(`qv_${id}`);
+            if (!qv) return;
+            
+            const d = gameData[`${id}_D`] || '';
+            const h = gameData[`${id}_H`] || '';
+            const s = gameData[`${id}_S`] || '';
+            const video = gameData[`${id}_Video`] || '';
+            
+            let summary = '';
+            if (d || h || s) {
+                summary = `D:${d} H:${h} S:${s}`;
+            }
+            if (video) {
+                summary += ` [${video}]`;
+            }
+            qv.textContent = summary;
+        }
+        
+        // Game management
+        function getSavedGames() {
+            const games = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith(STORAGE_KEY)) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        games.push({
+                            id: key.replace(STORAGE_KEY, ''),
+                            date: data.gameDate || 'Unknown',
+                            lane: data.lane || '?',
+                            ball: data.ball || 'Unknown'
+                        });
+                    } catch (e) {}
+                }
+            }
+            games.sort((a, b) => b.date.localeCompare(a.date));
+            return games;
+        }
+        
+        function updateGameSelector() {
+            const sel = document.getElementById('gameSelector');
+            const games = getSavedGames();
+            
+            sel.innerHTML = `<option value="">-- ${games.length} Games --</option>`;
+            games.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.textContent = `${g.date} | L${g.lane} | ${g.ball}`;
+                if (g.id === currentGameId) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+        
+        function newGame() {
+            currentGameId = 'game_' + Date.now();
+            gameData = {};
+            
+            // Clear UI
+            document.getElementById('gameDate').valueAsDate = new Date();
+            document.getElementById('lane').value = '';
+            document.getElementById('ball').value = '';
+            document.getElementById('pin').value = '';
+            document.getElementById('cover').value = '';
+            document.getElementById('surface').value = '';
+            document.getElementById('layout').value = '';
+            
+            // Clear all selections
+            document.querySelectorAll('.tap-btn.selected').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.num-display').forEach(i => i.value = '0');
+            document.querySelectorAll('.notes-input').forEach(i => i.value = '');
+            document.querySelectorAll('.video-btn').forEach(b => {
+                b.classList.remove('v-selected', 'x-selected');
+            });
+            document.querySelectorAll('.shot-quick-view').forEach(q => q.textContent = '');
+            
+            // Clear ball changes
+            document.getElementById('ballChanges').innerHTML = '';
+            
+            // Collapse all cards
+            document.querySelectorAll('.shot-card').forEach(c => c.classList.add('collapsed'));
+            
+            saveGame();
+            updateGameSelector();
+            showToast('New game created');
+        }
+        
+        function saveGame() {
+            if (!currentGameId) return;
+            
+            // Collect equipment
+            gameData.gameDate = document.getElementById('gameDate').value;
+            gameData.lane = document.getElementById('lane').value;
+            gameData.ball = document.getElementById('ball').value;
+            gameData.pin = document.getElementById('pin').value;
+            gameData.cover = document.getElementById('cover').value;
+            gameData.surface = document.getElementById('surface').value;
+            gameData.layout = document.getElementById('layout').value;
+            
+            // Collect shot data from UI
+            document.querySelectorAll('.tap-btn.selected').forEach(btn => {
+                gameData[btn.dataset.field] = btn.dataset.value;
+            });
+            
+            document.querySelectorAll('.num-display').forEach(input => {
+                gameData[input.id] = input.value;
+            });
+            
+            document.querySelectorAll('.notes-input').forEach(input => {
+                gameData[input.id] = input.value;
+            });
+            
+            // Ball changes
+            gameData.ballChanges = [];
+            document.querySelectorAll('.ball-change-entry').forEach(entry => {
+                const change = {};
+                entry.querySelectorAll('input, select').forEach(el => {
+                    change[el.dataset.field] = el.value;
+                });
+                gameData.ballChanges.push(change);
+            });
+            
+            localStorage.setItem(STORAGE_KEY + currentGameId, JSON.stringify(gameData));
+            updateGameSelector();
+        }
+        
+        function loadGame(id) {
+            if (!id) return;
+            
+            const data = localStorage.getItem(STORAGE_KEY + id);
+            if (!data) return;
+            
+            currentGameId = id;
+            gameData = JSON.parse(data);
+            
+            // Load equipment
+            document.getElementById('gameDate').value = gameData.gameDate || '';
+            document.getElementById('lane').value = gameData.lane || '';
+            document.getElementById('ball').value = gameData.ball || '';
+            document.getElementById('pin').value = gameData.pin || '';
+            document.getElementById('cover').value = gameData.cover || '';
+            document.getElementById('surface').value = gameData.surface || '';
+            document.getElementById('layout').value = gameData.layout || '';
+            
+            // Clear selections
+            document.querySelectorAll('.tap-btn.selected').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.video-btn').forEach(b => b.classList.remove('v-selected', 'x-selected'));
+            
+            // Load shot data
+            Object.keys(gameData).forEach(key => {
+                // Tap buttons
+                const btn = document.querySelector(`[data-field="${key}"][data-value="${gameData[key]}"]`);
+                if (btn) btn.classList.add('selected');
+                
+                // Number inputs
+                const numInput = document.getElementById(key);
+                if (numInput && numInput.classList.contains('num-display')) {
+                    numInput.value = gameData[key];
+                }
+                
+                // Notes
+                if (key.endsWith('_Notes')) {
+                    const notesInput = document.getElementById(key);
+                    if (notesInput) notesInput.value = gameData[key];
+                }
+                
+                // Video checks
+                if (key.endsWith('_Video')) {
+                    const shotId = key.replace('_Video', '');
+                    if (gameData[key] === 'V') {
+                        document.getElementById(`${shotId}_V`)?.classList.add('v-selected');
+                    } else if (gameData[key] === 'X') {
+                        document.getElementById(`${shotId}_X`)?.classList.add('x-selected');
+                    }
+                }
+            });
+            
+            // Update all quick views
+            frames.forEach(f => {
+                f.shots.forEach(s => {
+                    updateQuickView(`${f.frame}_${s}`);
+                });
+            });
+            
+            // Load ball changes
+            document.getElementById('ballChanges').innerHTML = '';
+            (gameData.ballChanges || []).forEach(change => addBallChange(change));
+            
+            showToast('Game loaded');
+        }
+        
+        function deleteGame() {
+            if (!currentGameId) return;
+            if (!confirm('Delete this game?')) return;
+            
+            localStorage.removeItem(STORAGE_KEY + currentGameId);
+            currentGameId = null;
+            gameData = {};
+            updateGameSelector();
+            newGame();
+            showToast('Game deleted');
+        }
+        
+        function addBallChange(data = {}) {
+            const container = document.getElementById('ballChanges');
+            const entry = document.createElement('div');
+            entry.className = 'ball-change-entry';
+            
+            entry.innerHTML = `
+                <div class="ball-change-row">
+                    <div class="field">
+                        <label>Frame</label>
+                        <input type="number" min="1" max="10" data-field="frame" value="${data.frame || ''}" onchange="saveGame()">
+                    </div>
+                    <div class="field">
+                        <label>Ball</label>
+                        <input type="text" data-field="ball" value="${data.ball || ''}" onchange="saveGame()">
+                    </div>
+                    <div class="field">
+                        <label>Pin</label>
+                        <select data-field="pin" onchange="saveGame()">
+                            <option value="">-</option>
+                            <option value="U" ${data.pin === 'U' ? 'selected' : ''}>Up</option>
+                            <option value="D" ${data.pin === 'D' ? 'selected' : ''}>Down</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Cover</label>
+                        <select data-field="cover" onchange="saveGame()">
+                            <option value="">-</option>
+                            <option value="P" ${data.cover === 'P' ? 'selected' : ''}>Pearl</option>
+                            <option value="S" ${data.cover === 'S' ? 'selected' : ''}>Solid</option>
+                            <option value="H" ${data.cover === 'H' ? 'selected' : ''}>Hybrid</option>
+                            <option value="U" ${data.cover === 'U' ? 'selected' : ''}>Urethane</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="remove-btn" onclick="this.parentElement.remove(); saveGame();">Remove</button>
+            `;
+            
+            container.appendChild(entry);
+        }
+        
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+    </script>
+</body>
+</html>
