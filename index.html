@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Shot Tracker</title>
+    <title>LaneRead - Shot Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎳</text></svg>">
     <style>
         * {
             box-sizing: border-box;
@@ -89,10 +90,55 @@
         .btn-delete { background: #e74c3c; color: white; }
         .btn-small { padding: 6px 10px; font-size: 12px; }
         
-        /* Main content */
-        .main {
+        /* Tab content areas */
+        .tab-content {
+            display: none;
             padding: 10px;
             padding-bottom: 80px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Bottom Tab Bar */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            border-top: 1px solid #ddd;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 10px 5px;
+            border: none;
+            background: none;
+            font-size: 11px;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .tab-btn .icon {
+            font-size: 20px;
+        }
+        
+        .tab-btn.active {
+            color: var(--saw);
+            font-weight: 600;
+        }
+        
+        .tab-btn.active .icon {
+            transform: scale(1.1);
         }
         
         /* Equipment Card */
@@ -430,10 +476,114 @@
             color: #333;
         }
         
+        /* Help pages styling */
+        .help-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .help-card h2 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            color: #333;
+            border-bottom: 2px solid var(--saw);
+            padding-bottom: 8px;
+        }
+        
+        .help-card h3 {
+            margin: 15px 0 10px 0;
+            font-size: 13px;
+            color: #555;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .help-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+        
+        .help-table th,
+        .help-table td {
+            padding: 10px 8px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        
+        .help-table th {
+            background: #f5f5f5;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .help-table tr:nth-child(even) {
+            background: #fafafa;
+        }
+        
+        .help-table td:first-child {
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .badge.saw { background: var(--saw-light); color: var(--saw); }
+        .badge.line { background: var(--line-light); color: var(--line); }
+        .badge.release { background: var(--release-light); color: var(--release); }
+        .badge.state { background: var(--state-light); color: var(--state); }
+        
+        .hierarchy-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .hierarchy-num {
+            width: 28px;
+            height: 28px;
+            background: var(--saw);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+        
+        .hierarchy-text {
+            flex: 1;
+        }
+        
+        .hierarchy-text strong {
+            display: block;
+            font-size: 14px;
+        }
+        
+        .hierarchy-text span {
+            font-size: 12px;
+            color: #666;
+        }
+
         /* Status toast */
         .toast {
             position: fixed;
-            bottom: 20px;
+            bottom: 70px;
             left: 50%;
             transform: translateX(-50%);
             background: #333;
@@ -471,16 +621,24 @@
             }
             
             .header,
+            .tab-bar,
             .btn,
             .add-btn,
             .remove-btn,
             .expand-btn,
-            .toast {
+            .toast,
+            #helpTab,
+            #codesTab {
                 display: none !important;
             }
             
-            .main {
+            #trackerTab {
+                display: block !important;
+            }
+            
+            .tab-content {
                 padding: 0;
+                padding-bottom: 0;
             }
             
             .shot-card,
@@ -511,7 +669,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎳 Shot Tracker</h1>
+        <h1>🎳 LaneRead</h1>
         <div class="header-row">
             <select id="gameSelector" onchange="loadGame(this.value)">
                 <option value="">-- Select Game --</option>
@@ -524,7 +682,8 @@
         </div>
     </div>
     
-    <div class="main">
+    <!-- TAB: Tracker -->
+    <div id="trackerTab" class="tab-content active">
         <!-- Equipment -->
         <div class="equipment-card">
             <h2>Equipment</h2>
@@ -603,21 +762,315 @@
             <div id="ballChanges"></div>
             <button class="add-btn" onclick="addBallChange()">+ Add Ball Change</button>
         </div>
-        
-        <!-- Quick Reference -->
-        <div class="quick-ref">
-            <strong>Codes:</strong> D/H/S: -2 to +2 (0=expected) | 
-            Feet/Tgt: boards moved (−left, +right) | 
-            Loft: 0=line, 1=mid, 2=deep | 
-            Axis: 0°/45°/90° | 
-            Hand: S=soft, H=hard
+    </div>
+    
+    <!-- TAB: Decision Tree -->
+    <div id="helpTab" class="tab-content">
+        <div class="help-card">
+            <h2>If I See → Then Try</h2>
+            <table class="help-table">
+                <tr>
+                    <th>What I See</th>
+                    <th>Adjustment Options</th>
+                </tr>
+                <tr>
+                    <td>Ball right (D+)</td>
+                    <td>Feet RIGHT or target LEFT</td>
+                </tr>
+                <tr>
+                    <td>Ball left (D-)</td>
+                    <td>Feet LEFT or target RIGHT</td>
+                </tr>
+                <tr>
+                    <td>Hook EARLY (H+)</td>
+                    <td>1) More loft 2) More speed 3) Move left 4) Softer hand</td>
+                </tr>
+                <tr>
+                    <td>Hook LATE (H-)</td>
+                    <td>1) Less loft 2) Less speed 3) Move right 4) Firmer hand</td>
+                </tr>
+                <tr>
+                    <td>Too FAST (S+)</td>
+                    <td>Slow tempo, softer push, relax</td>
+                </tr>
+                <tr>
+                    <td>Too SLOW (S-)</td>
+                    <td>Quicker tempo, longer push</td>
+                </tr>
+                <tr>
+                    <td>Early + Left</td>
+                    <td>Move left, add loft, loft gutter cap</td>
+                </tr>
+                <tr>
+                    <td>Late + Right</td>
+                    <td>Move right, less loft, stronger ball</td>
+                </tr>
+            </table>
         </div>
+        
+        <div class="help-card">
+            <h2>Release Adjustments</h2>
+            <table class="help-table">
+                <tr>
+                    <th>Adjustment</th>
+                    <th>Effect</th>
+                </tr>
+                <tr>
+                    <td>Axis 0° (up)</td>
+                    <td>End-over-end, earliest hook, most hook potential</td>
+                </tr>
+                <tr>
+                    <td>Axis 45° (behind)</td>
+                    <td>Balanced roll, standard release</td>
+                </tr>
+                <tr>
+                    <td>Axis 90° (around)</td>
+                    <td>Skids longer, less total hook, good for dry</td>
+                </tr>
+                <tr>
+                    <td>Pinky curl ↑</td>
+                    <td>More axis rotation, more backend snap</td>
+                </tr>
+                <tr>
+                    <td>Pinky curl ↓</td>
+                    <td>Cleaner, more predictable</td>
+                </tr>
+                <tr>
+                    <td>Soft hand</td>
+                    <td>Later release, more loft, less rev</td>
+                </tr>
+                <tr>
+                    <td>Hard hand</td>
+                    <td>Earlier release, cleaner, more rev</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="help-card">
+            <h2>Ball Selection</h2>
+            <table class="help-table">
+                <tr>
+                    <th>Ball/Setup</th>
+                    <th>When to Use</th>
+                </tr>
+                <tr>
+                    <td>Pearl</td>
+                    <td>Medium-dry, fried heads, need length</td>
+                </tr>
+                <tr>
+                    <td>Solid</td>
+                    <td>Fresh oil, heavy volume, need control</td>
+                </tr>
+                <tr>
+                    <td>Hybrid</td>
+                    <td>Balanced: some length + continuous motion</td>
+                </tr>
+                <tr>
+                    <td>Urethane</td>
+                    <td>Early read, control over/under, sport shots</td>
+                </tr>
+                <tr>
+                    <td>Pin UP</td>
+                    <td>More length, more backend, higher flare</td>
+                </tr>
+                <tr>
+                    <td>Pin DOWN</td>
+                    <td>Earlier roll, smoother arc, lower flare</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="help-card">
+            <h2>Adjustment Hierarchy</h2>
+            <p style="font-size:13px;color:#666;margin-bottom:12px;">Try in this order - exhaust simpler options first</p>
+            
+            <div class="hierarchy-item">
+                <div class="hierarchy-num">1</div>
+                <div class="hierarchy-text">
+                    <strong>Line First</strong>
+                    <span>Feet/target moves - lowest risk, easiest to execute</span>
+                </div>
+            </div>
+            
+            <div class="hierarchy-item">
+                <div class="hierarchy-num">2</div>
+                <div class="hierarchy-text">
+                    <strong>Loft / Speed</strong>
+                    <span>Physical adjustments - moderate risk</span>
+                </div>
+            </div>
+            
+            <div class="hierarchy-item">
+                <div class="hierarchy-num">3</div>
+                <div class="hierarchy-text">
+                    <strong>Release</strong>
+                    <span>Axis/hand changes - higher risk, requires feel</span>
+                </div>
+            </div>
+            
+            <div class="hierarchy-item">
+                <div class="hierarchy-num">4</div>
+                <div class="hierarchy-text">
+                    <strong>Ball Change</strong>
+                    <span>Last resort - time consuming but sometimes necessary</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TAB: Codes Reference -->
+    <div id="codesTab" class="tab-content">
+        <div class="help-card">
+            <h2>What I Saw</h2>
+            <p style="font-size:13px;color:#666;margin-bottom:12px;">Scale: <strong>-2, -1, 0, +1, +2</strong> where 0 = as expected</p>
+            
+            <table class="help-table">
+                <tr>
+                    <th>Code</th>
+                    <th>Negative (−)</th>
+                    <th>Positive (+)</th>
+                </tr>
+                <tr>
+                    <td><span class="badge saw">D</span></td>
+                    <td>← Left of target</td>
+                    <td>Right of target →</td>
+                </tr>
+                <tr>
+                    <td><span class="badge saw">H</span></td>
+                    <td>Late (held too long)</td>
+                    <td>Early (grabbed quick)</td>
+                </tr>
+                <tr>
+                    <td><span class="badge saw">S</span></td>
+                    <td>Slow</td>
+                    <td>Fast</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="help-card">
+            <h2>Line Adjustments</h2>
+            <table class="help-table">
+                <tr>
+                    <th>Code</th>
+                    <th>Values</th>
+                    <th>Meaning</th>
+                </tr>
+                <tr>
+                    <td><span class="badge line">Feet</span></td>
+                    <td>boards (+/−)</td>
+                    <td>− left, + right</td>
+                </tr>
+                <tr>
+                    <td><span class="badge line">Tgt</span></td>
+                    <td>boards (+/−)</td>
+                    <td>− left, + right</td>
+                </tr>
+                <tr>
+                    <td><span class="badge line">Loft</span></td>
+                    <td>0, 1, 2</td>
+                    <td>0=line, 1=mid, 2=deep</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="help-card">
+            <h2>Release Adjustments</h2>
+            <table class="help-table">
+                <tr>
+                    <th>Code</th>
+                    <th>Values</th>
+                    <th>Meaning</th>
+                </tr>
+                <tr>
+                    <td><span class="badge release">Axis</span></td>
+                    <td>0, 45, 90</td>
+                    <td>0°=up, 45°=behind, 90°=around</td>
+                </tr>
+                <tr>
+                    <td><span class="badge release">Pky</span></td>
+                    <td>0, 1, 2</td>
+                    <td>Pinky: 0=none, 1=some, 2=full</td>
+                </tr>
+                <tr>
+                    <td><span class="badge release">Hand</span></td>
+                    <td>S, H</td>
+                    <td>S=soft, H=hard</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="help-card">
+            <h2>State</h2>
+            <table class="help-table">
+                <tr>
+                    <th>Code</th>
+                    <th>Values</th>
+                </tr>
+                <tr>
+                    <td><span class="badge state">Mood</span></td>
+                    <td>😊 focused &nbsp; 😐 neutral &nbsp; 😤 frustrated</td>
+                </tr>
+                <tr>
+                    <td><span class="badge state">Conf</span></td>
+                    <td>H high &nbsp; M medium &nbsp; L low</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="help-card">
+            <h2>Equipment Codes</h2>
+            <table class="help-table">
+                <tr>
+                    <th>Field</th>
+                    <th>Options</th>
+                </tr>
+                <tr>
+                    <td>Pin</td>
+                    <td>U (up) / D (down)</td>
+                </tr>
+                <tr>
+                    <td>Cover</td>
+                    <td>P (pearl) / S (solid) / H (hybrid) / U (urethane)</td>
+                </tr>
+                <tr>
+                    <td>Surface</td>
+                    <td>500, 1000, 2000, 3000, 4000, 5000, polish</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="help-card">
+            <h2>Video Review</h2>
+            <p style="font-size:14px;line-height:1.6;">
+                After the game, compare each shot to video:<br><br>
+                <strong style="color:#27ae60;">✓ V = Video confirms</strong> your read was correct<br>
+                <strong style="color:#e74c3c;">✗ X = Misread</strong> - you saw it wrong<br><br>
+                Look for patterns in your X's. Where do they cluster?
+            </p>
+        </div>
+    </div>
+    
+    <!-- Bottom Tab Bar -->
+    <div class="tab-bar">
+        <button class="tab-btn active" onclick="switchTab('tracker')">
+            <span class="icon">🎳</span>
+            Track
+        </button>
+        <button class="tab-btn" onclick="switchTab('help')">
+            <span class="icon">🎯</span>
+            Decisions
+        </button>
+        <button class="tab-btn" onclick="switchTab('codes')">
+            <span class="icon">📋</span>
+            Codes
+        </button>
     </div>
     
     <div class="toast" id="toast">Saved</div>
     
     <script>
-        const STORAGE_KEY = 'bowling_v2_';
+        const STORAGE_KEY = 'laneread_';
         let currentGameId = null;
         let gameData = {};
         
@@ -628,13 +1081,37 @@
         }
         frames.push({frame: 10, shots: [1, 2, 3]});
         
+        // Column definitions
+        const columns = [
+            {id: 'D', class: 'saw-col', type: 'number', min: -2, max: 2},
+            {id: 'H', class: 'saw-col', type: 'number', min: -2, max: 2},
+            {id: 'S', class: 'saw-col', type: 'number', min: -2, max: 2},
+            {id: 'Feet', class: 'line-col', type: 'number', min: -10, max: 10},
+            {id: 'Tgt', class: 'line-col', type: 'number', min: -10, max: 10},
+            {id: 'Loft', class: 'line-col', type: 'select', options: ['', '0', '1', '2']},
+            {id: 'Axis', class: 'release-col', type: 'select', options: ['', '0', '45', '90']},
+            {id: 'Pky', class: 'release-col', type: 'select', options: ['', '0', '1', '2']},
+            {id: 'Hand', class: 'release-col', type: 'select', options: ['', 'S', 'H']},
+            {id: 'Mood', class: 'state-col', type: 'select', options: ['', '😊', '😐', '😤']},
+            {id: 'Conf', class: 'state-col', type: 'select', options: ['', 'H', 'M', 'L']},
+            {id: 'Notes', class: 'notes-cell', type: 'text'}
+        ];
+        
+        // Tab switching
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tab + 'Tab').classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+        
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('gameDate').valueAsDate = new Date();
             renderShots();
             updateGameSelector();
             
-            // Load most recent game
             const games = getSavedGames();
             if (games.length > 0) {
                 loadGame(games[0].id);
@@ -767,18 +1244,14 @@
             const field = btn.dataset.field;
             const value = btn.dataset.value;
             
-            // Deselect siblings
             const siblings = document.querySelectorAll(`[data-field="${field}"]`);
             siblings.forEach(s => s.classList.remove('selected'));
             
-            // Select this one
             btn.classList.add('selected');
             
-            // Save
             gameData[field] = value;
             saveGame();
             
-            // Update quick view
             const id = field.split('_').slice(0, -1).join('_');
             updateQuickView(id.replace('f', '').replace('s', '_'));
         }
@@ -829,7 +1302,6 @@
             qv.textContent = summary;
         }
         
-        // Game management
         function getSavedGames() {
             const games = [];
             for (let i = 0; i < localStorage.length; i++) {
@@ -868,7 +1340,6 @@
             currentGameId = 'game_' + Date.now();
             gameData = {};
             
-            // Clear UI
             document.getElementById('gameDate').valueAsDate = new Date();
             document.getElementById('lane').value = '';
             document.getElementById('ball').value = '';
@@ -877,7 +1348,6 @@
             document.getElementById('surface').value = '';
             document.getElementById('layout').value = '';
             
-            // Clear all selections
             document.querySelectorAll('.tap-btn.selected').forEach(b => b.classList.remove('selected'));
             document.querySelectorAll('.num-display').forEach(i => i.value = '0');
             document.querySelectorAll('.notes-input').forEach(i => i.value = '');
@@ -886,11 +1356,13 @@
             });
             document.querySelectorAll('.shot-quick-view').forEach(q => q.textContent = '');
             
-            // Clear ball changes
             document.getElementById('ballChanges').innerHTML = '';
             
-            // Collapse all cards
             document.querySelectorAll('.shot-card').forEach(c => c.classList.add('collapsed'));
+            
+            // Switch to tracker tab
+            switchTab('tracker');
+            document.querySelector('.tab-btn').click();
             
             saveGame();
             updateGameSelector();
@@ -900,7 +1372,6 @@
         function saveGame() {
             if (!currentGameId) return;
             
-            // Collect equipment
             gameData.gameDate = document.getElementById('gameDate').value;
             gameData.lane = document.getElementById('lane').value;
             gameData.ball = document.getElementById('ball').value;
@@ -909,7 +1380,6 @@
             gameData.surface = document.getElementById('surface').value;
             gameData.layout = document.getElementById('layout').value;
             
-            // Collect shot data from UI
             document.querySelectorAll('.tap-btn.selected').forEach(btn => {
                 gameData[btn.dataset.field] = btn.dataset.value;
             });
@@ -922,7 +1392,6 @@
                 gameData[input.id] = input.value;
             });
             
-            // Ball changes
             gameData.ballChanges = [];
             document.querySelectorAll('.ball-change-entry').forEach(entry => {
                 const change = {};
@@ -945,7 +1414,6 @@
             currentGameId = id;
             gameData = JSON.parse(data);
             
-            // Load equipment
             document.getElementById('gameDate').value = gameData.gameDate || '';
             document.getElementById('lane').value = gameData.lane || '';
             document.getElementById('ball').value = gameData.ball || '';
@@ -954,29 +1422,23 @@
             document.getElementById('surface').value = gameData.surface || '';
             document.getElementById('layout').value = gameData.layout || '';
             
-            // Clear selections
             document.querySelectorAll('.tap-btn.selected').forEach(b => b.classList.remove('selected'));
             document.querySelectorAll('.video-btn').forEach(b => b.classList.remove('v-selected', 'x-selected'));
             
-            // Load shot data
             Object.keys(gameData).forEach(key => {
-                // Tap buttons
                 const btn = document.querySelector(`[data-field="${key}"][data-value="${gameData[key]}"]`);
                 if (btn) btn.classList.add('selected');
                 
-                // Number inputs
                 const numInput = document.getElementById(key);
                 if (numInput && numInput.classList.contains('num-display')) {
                     numInput.value = gameData[key];
                 }
                 
-                // Notes
                 if (key.endsWith('_Notes')) {
                     const notesInput = document.getElementById(key);
                     if (notesInput) notesInput.value = gameData[key];
                 }
                 
-                // Video checks
                 if (key.endsWith('_Video')) {
                     const shotId = key.replace('_Video', '');
                     if (gameData[key] === 'V') {
@@ -987,14 +1449,12 @@
                 }
             });
             
-            // Update all quick views
             frames.forEach(f => {
                 f.shots.forEach(s => {
                     updateQuickView(`${f.frame}_${s}`);
                 });
             });
             
-            // Load ball changes
             document.getElementById('ballChanges').innerHTML = '';
             (gameData.ballChanges || []).forEach(change => addBallChange(change));
             
