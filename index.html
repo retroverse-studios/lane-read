@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>LaneRead - Shot Tracker</title>
+    <title>LaneRead - Bowling Performance System</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎳</text></svg>">
     <style>
         * {
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-        
+
         :root {
             --saw: #4472C4;
             --saw-light: #DEEBF7;
@@ -20,6 +20,8 @@
             --release-light: #E4DFEC;
             --state: #ED7D31;
             --state-light: #FCE4D6;
+            --snapshot: #2196F3;
+            --snapshot-light: #E3F2FD;
             --bg: #f5f5f5;
             --card: #ffffff;
             --border: #ddd;
@@ -580,6 +582,172 @@
             color: #666;
         }
 
+        /* Help sub-tabs */
+        .help-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .help-tab-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: white;
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .help-tab-btn.active {
+            background: var(--saw);
+            color: white;
+            border-color: var(--saw);
+        }
+
+        .help-section {
+            display: none;
+        }
+
+        .help-section.active {
+            display: block;
+        }
+
+        /* Snapshot styles */
+        .snapshot-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .snapshot-card h2 {
+            margin: 0 0 12px 0;
+            font-size: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .snapshot-card h2 .emoji {
+            font-size: 18px;
+        }
+
+        .snapshot-card h3 {
+            margin: 12px 0 8px 0;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .snapshot-field {
+            margin-bottom: 12px;
+        }
+
+        .snapshot-field label {
+            display: block;
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .snapshot-field input,
+        .snapshot-field select,
+        .snapshot-field textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fafafa;
+        }
+
+        .snapshot-field textarea {
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .snapshot-field input:focus,
+        .snapshot-field select:focus,
+        .snapshot-field textarea:focus {
+            outline: none;
+            border-color: var(--snapshot);
+            background: white;
+        }
+
+        .snapshot-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .snapshot-row.three-col {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .check-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .check-btn {
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .check-btn:active {
+            transform: scale(0.95);
+        }
+
+        .check-btn.selected {
+            border-color: var(--snapshot);
+            background: var(--snapshot-light);
+            color: var(--snapshot);
+        }
+
+        .rating-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .rating-btn {
+            flex: 1;
+            padding: 12px 8px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .rating-btn.selected {
+            border-color: var(--snapshot);
+            background: var(--snapshot);
+            color: white;
+        }
+
+        .truth-input {
+            font-style: italic;
+        }
+
+        .snapshot-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 15px 0;
+        }
+
         /* Status toast */
         .toast {
             position: fixed;
@@ -619,7 +787,7 @@
                 background: white;
                 font-size: 10px;
             }
-            
+
             .header,
             .tab-bar,
             .btn,
@@ -627,41 +795,42 @@
             .remove-btn,
             .expand-btn,
             .toast,
-            #helpTab,
-            #codesTab {
+            #helpTab {
                 display: none !important;
             }
-            
-            #trackerTab {
-                display: block !important;
-            }
-            
+
             .tab-content {
                 padding: 0;
                 padding-bottom: 0;
             }
-            
+
             .shot-card,
             .equipment-card,
             .ball-change-card,
-            .quick-ref {
+            .quick-ref,
+            .snapshot-card {
                 box-shadow: none;
                 border: 1px solid #ccc;
                 page-break-inside: avoid;
                 margin-bottom: 5px;
             }
-            
+
             .shot-card.collapsed .shot-body {
                 display: block !important;
             }
-            
+
             .tap-btn {
                 padding: 4px 8px;
                 min-width: 30px;
                 font-size: 10px;
             }
-            
+
             .tap-btn:not(.selected) {
+                opacity: 0.3;
+            }
+
+            .check-btn:not(.selected),
+            .rating-btn:not(.selected) {
                 opacity: 0.3;
             }
         }
@@ -669,8 +838,8 @@
 </head>
 <body>
     <div class="header">
-        <h1>🎳 LaneRead</h1>
-        <div class="header-row">
+        <h1 id="headerTitle">🎳 LaneRead</h1>
+        <div class="header-row" id="trackerHeader">
             <select id="gameSelector" onchange="loadGame(this.value)">
                 <option value="">-- Select Game --</option>
             </select>
@@ -678,6 +847,16 @@
                 <button class="btn btn-new btn-small" onclick="newGame()">+ New</button>
                 <button class="btn btn-print btn-small" onclick="window.print()">🖨️</button>
                 <button class="btn btn-delete btn-small" onclick="deleteGame()">🗑️</button>
+            </div>
+        </div>
+        <div class="header-row" id="snapshotHeader" style="display:none;">
+            <select id="snapshotSelector" onchange="loadSnapshot(this.value)">
+                <option value="">-- Select Session --</option>
+            </select>
+            <div class="header-buttons">
+                <button class="btn btn-new btn-small" onclick="newSnapshot()">+ New</button>
+                <button class="btn btn-print btn-small" onclick="window.print()">🖨️</button>
+                <button class="btn btn-delete btn-small" onclick="deleteSnapshot()">🗑️</button>
             </div>
         </div>
     </div>
@@ -764,306 +943,686 @@
         </div>
     </div>
     
-    <!-- TAB: Decision Tree -->
-    <div id="helpTab" class="tab-content">
-        <div class="help-card">
-            <h2>If I See → Then Try</h2>
-            <table class="help-table">
-                <tr>
-                    <th>What I See</th>
-                    <th>Adjustment Options</th>
-                </tr>
-                <tr>
-                    <td>Ball right (D+)</td>
-                    <td>Feet RIGHT or target LEFT</td>
-                </tr>
-                <tr>
-                    <td>Ball left (D-)</td>
-                    <td>Feet LEFT or target RIGHT</td>
-                </tr>
-                <tr>
-                    <td>Hook EARLY (H+)</td>
-                    <td>1) More loft 2) More speed 3) Move left 4) Softer hand</td>
-                </tr>
-                <tr>
-                    <td>Hook LATE (H-)</td>
-                    <td>1) Less loft 2) Less speed 3) Move right 4) Firmer hand</td>
-                </tr>
-                <tr>
-                    <td>Too FAST (S+)</td>
-                    <td>Slow tempo, softer push, relax</td>
-                </tr>
-                <tr>
-                    <td>Too SLOW (S-)</td>
-                    <td>Quicker tempo, longer push</td>
-                </tr>
-                <tr>
-                    <td>Early + Left</td>
-                    <td>Move left, add loft, loft gutter cap</td>
-                </tr>
-                <tr>
-                    <td>Late + Right</td>
-                    <td>Move right, less loft, stronger ball</td>
-                </tr>
-            </table>
+    <!-- TAB: Performance Snapshot -->
+    <div id="snapshotTab" class="tab-content">
+        <!-- Context -->
+        <div class="snapshot-card">
+            <h2><span class="emoji">🧠</span> Context</h2>
+            <div class="snapshot-row">
+                <div class="snapshot-field">
+                    <label>Date</label>
+                    <input type="date" id="snapDate" onchange="saveSnapshot()">
+                </div>
+                <div class="snapshot-field">
+                    <label>Location</label>
+                    <input type="text" id="snapLocation" placeholder="Venue" onchange="saveSnapshot()">
+                </div>
+            </div>
+            <div class="snapshot-field">
+                <label>Event Type</label>
+                <div class="check-group" id="snapEventType">
+                    <button class="check-btn" data-field="snapEventType" data-value="PTQ" onclick="snapCheck(this)">PTQ</button>
+                    <button class="check-btn" data-field="snapEventType" data-value="Regional" onclick="snapCheck(this)">Regional</button>
+                    <button class="check-btn" data-field="snapEventType" data-value="Tournament" onclick="snapCheck(this)">Tournament</button>
+                    <button class="check-btn" data-field="snapEventType" data-value="Training" onclick="snapCheck(this)">Training</button>
+                </div>
+            </div>
+            <div class="snapshot-row">
+                <div class="snapshot-field">
+                    <label>Games / Block</label>
+                    <input type="text" id="snapGames" placeholder="e.g. 6 games" onchange="saveSnapshot()">
+                </div>
+                <div class="snapshot-field">
+                    <label>Pattern</label>
+                    <input type="text" id="snapPattern" placeholder="if known" onchange="saveSnapshot()">
+                </div>
+            </div>
+            <div class="snapshot-field">
+                <label>Physical State</label>
+                <div class="check-group" id="snapPhysical">
+                    <button class="check-btn" data-field="snapPhysical" data-value="fresh" onclick="snapCheck(this)">Fresh</button>
+                    <button class="check-btn" data-field="snapPhysical" data-value="ok" onclick="snapCheck(this)">OK</button>
+                    <button class="check-btn" data-field="snapPhysical" data-value="flat" onclick="snapCheck(this)">Flat</button>
+                </div>
+            </div>
         </div>
-        
-        <div class="help-card">
-            <h2>Release Adjustments</h2>
-            <table class="help-table">
-                <tr>
-                    <th>Adjustment</th>
-                    <th>Effect</th>
-                </tr>
-                <tr>
-                    <td>Axis 0° (up)</td>
-                    <td>End-over-end, earliest hook, most hook potential</td>
-                </tr>
-                <tr>
-                    <td>Axis 45° (behind)</td>
-                    <td>Balanced roll, standard release</td>
-                </tr>
-                <tr>
-                    <td>Axis 90° (around)</td>
-                    <td>Skids longer, less total hook, good for dry</td>
-                </tr>
-                <tr>
-                    <td>Pinky curl ↑</td>
-                    <td>More axis rotation, more backend snap</td>
-                </tr>
-                <tr>
-                    <td>Pinky curl ↓</td>
-                    <td>Cleaner, more predictable</td>
-                </tr>
-                <tr>
-                    <td>Soft hand</td>
-                    <td>Later release, more loft, less rev</td>
-                </tr>
-                <tr>
-                    <td>Hard hand</td>
-                    <td>Earlier release, cleaner, more rev</td>
-                </tr>
-            </table>
+
+        <!-- A. Shot Execution -->
+        <div class="snapshot-card">
+            <h2><span class="emoji">🎯</span> A. Shot Execution</h2>
+            <h3>First Ball</h3>
+            <div class="snapshot-field">
+                <label>Pocket hit rate felt</label>
+                <div class="check-group" id="snapPocketRate">
+                    <button class="check-btn" data-field="snapPocketRate" data-value="<50%" onclick="snapCheck(this)">&lt;50%</button>
+                    <button class="check-btn" data-field="snapPocketRate" data-value="~60%" onclick="snapCheck(this)">~60%</button>
+                    <button class="check-btn" data-field="snapPocketRate" data-value="~70%" onclick="snapCheck(this)">~70%</button>
+                    <button class="check-btn" data-field="snapPocketRate" data-value="elite" onclick="snapCheck(this)">Elite</button>
+                </div>
+            </div>
+            <div class="snapshot-field">
+                <label>Typical miss</label>
+                <div class="check-group" id="snapTypicalMiss">
+                    <button class="check-btn" data-field="snapTypicalMiss" data-value="inside" onclick="snapCheck(this)">Inside</button>
+                    <button class="check-btn" data-field="snapTypicalMiss" data-value="outside" onclick="snapCheck(this)">Outside</button>
+                    <button class="check-btn" data-field="snapTypicalMiss" data-value="long" onclick="snapCheck(this)">Long</button>
+                    <button class="check-btn" data-field="snapTypicalMiss" data-value="short" onclick="snapCheck(this)">Short</button>
+                </div>
+            </div>
+            <div class="snapshot-field">
+                <label>Ball motion most of block</label>
+                <div class="check-group" id="snapBallMotion">
+                    <button class="check-btn" data-field="snapBallMotion" data-value="early" onclick="snapCheck(this)">Early</button>
+                    <button class="check-btn" data-field="snapBallMotion" data-value="lazy" onclick="snapCheck(this)">Lazy</button>
+                    <button class="check-btn" data-field="snapBallMotion" data-value="cliffed" onclick="snapCheck(this)">Cliffed</button>
+                    <button class="check-btn" data-field="snapBallMotion" data-value="predictable" onclick="snapCheck(this)">Predictable</button>
+                </div>
+            </div>
+
+            <div class="snapshot-divider"></div>
+            <h3>Spare Shooting</h3>
+            <div class="snapshot-field">
+                <label>Single pins</label>
+                <div class="check-group" id="snapSinglePins">
+                    <button class="check-btn" data-field="snapSinglePins" data-value="solid" onclick="snapCheck(this)">Solid</button>
+                    <button class="check-btn" data-field="snapSinglePins" data-value="acceptable" onclick="snapCheck(this)">Acceptable</button>
+                    <button class="check-btn" data-field="snapSinglePins" data-value="sloppy" onclick="snapCheck(this)">Sloppy</button>
+                </div>
+            </div>
+            <div class="snapshot-field">
+                <label>Any avoidable opens?</label>
+                <div class="check-group" id="snapAvoidableOpens">
+                    <button class="check-btn" data-field="snapAvoidableOpens" data-value="yes" onclick="snapCheck(this)">Yes</button>
+                    <button class="check-btn" data-field="snapAvoidableOpens" data-value="no" onclick="snapCheck(this)">No</button>
+                </div>
+            </div>
         </div>
-        
-        <div class="help-card">
-            <h2>Ball Selection</h2>
-            <table class="help-table">
-                <tr>
-                    <th>Ball/Setup</th>
-                    <th>When to Use</th>
-                </tr>
-                <tr>
-                    <td>Pearl</td>
-                    <td>Medium-dry, fried heads, need length</td>
-                </tr>
-                <tr>
-                    <td>Solid</td>
-                    <td>Fresh oil, heavy volume, need control</td>
-                </tr>
-                <tr>
-                    <td>Hybrid</td>
-                    <td>Balanced: some length + continuous motion</td>
-                </tr>
-                <tr>
-                    <td>Urethane</td>
-                    <td>Early read, control over/under, sport shots</td>
-                </tr>
-                <tr>
-                    <td>Pin UP</td>
-                    <td>More length, more backend, higher flare</td>
-                </tr>
-                <tr>
-                    <td>Pin DOWN</td>
-                    <td>Earlier roll, smoother arc, lower flare</td>
-                </tr>
-            </table>
+
+        <!-- B. Decision Quality -->
+        <div class="snapshot-card">
+            <h2><span class="emoji">🧩</span> B. Decision Quality</h2>
+            <div class="snapshot-field">
+                <label>Ball / surface decisions</label>
+                <div class="check-group" id="snapBallDecisions">
+                    <button class="check-btn" data-field="snapBallDecisions" data-value="late" onclick="snapCheck(this)">Late</button>
+                    <button class="check-btn" data-field="snapBallDecisions" data-value="mostly right" onclick="snapCheck(this)">Mostly Right</button>
+                    <button class="check-btn" data-field="snapBallDecisions" data-value="proactive" onclick="snapCheck(this)">Proactive</button>
+                </div>
+            </div>
+            <div class="snapshot-field">
+                <label>Lane transition reads</label>
+                <div class="check-group" id="snapLaneReads">
+                    <button class="check-btn" data-field="snapLaneReads" data-value="reactive" onclick="snapCheck(this)">Reactive</button>
+                    <button class="check-btn" data-field="snapLaneReads" data-value="neutral" onclick="snapCheck(this)">Neutral</button>
+                    <button class="check-btn" data-field="snapLaneReads" data-value="ahead" onclick="snapCheck(this)">Ahead</button>
+                </div>
+            </div>
+            <div class="snapshot-field">
+                <label>Adjustments timing</label>
+                <div class="check-group" id="snapAdjustTiming">
+                    <button class="check-btn" data-field="snapAdjustTiming" data-value="chased" onclick="snapCheck(this)">Chased</button>
+                    <button class="check-btn" data-field="snapAdjustTiming" data-value="held" onclick="snapCheck(this)">Held</button>
+                    <button class="check-btn" data-field="snapAdjustTiming" data-value="anticipated" onclick="snapCheck(this)">Anticipated</button>
+                </div>
+            </div>
+
+            <div class="snapshot-divider"></div>
+            <div class="snapshot-field">
+                <label>Overall decision quality</label>
+                <div class="rating-group" id="snapOverallDecision">
+                    <button class="rating-btn" data-field="snapOverallDecision" data-value="1" onclick="snapRating(this)">1<br><small>Behind</small></button>
+                    <button class="rating-btn" data-field="snapOverallDecision" data-value="2" onclick="snapRating(this)">2<br><small>Adequate</small></button>
+                    <button class="rating-btn" data-field="snapOverallDecision" data-value="3" onclick="snapRating(this)">3<br><small>Pro-level</small></button>
+                </div>
+            </div>
         </div>
-        
-        <div class="help-card">
-            <h2>Adjustment Hierarchy</h2>
-            <p style="font-size:13px;color:#666;margin-bottom:12px;">Try in this order - exhaust simpler options first</p>
-            
-            <div class="hierarchy-item">
-                <div class="hierarchy-num">1</div>
-                <div class="hierarchy-text">
-                    <strong>Line First</strong>
-                    <span>Feet/target moves - lowest risk, easiest to execute</span>
+
+        <!-- C. Mental & Routine Stability -->
+        <div class="snapshot-card">
+            <h2><span class="emoji">🧘</span> C. Mental & Routine</h2>
+            <div class="snapshot-field">
+                <label>Pre-shot routine held under pressure</label>
+                <div class="check-group" id="snapRoutine">
+                    <button class="check-btn" data-field="snapRoutine" data-value="yes" onclick="snapCheck(this)">Yes</button>
+                    <button class="check-btn" data-field="snapRoutine" data-value="mostly" onclick="snapCheck(this)">Mostly</button>
+                    <button class="check-btn" data-field="snapRoutine" data-value="no" onclick="snapCheck(this)">No</button>
                 </div>
             </div>
-            
-            <div class="hierarchy-item">
-                <div class="hierarchy-num">2</div>
-                <div class="hierarchy-text">
-                    <strong>Loft / Speed</strong>
-                    <span>Physical adjustments - moderate risk</span>
+            <div class="snapshot-field">
+                <label>Recovery after bad shots</label>
+                <div class="check-group" id="snapRecovery">
+                    <button class="check-btn" data-field="snapRecovery" data-value="1 frame" onclick="snapCheck(this)">1 Frame</button>
+                    <button class="check-btn" data-field="snapRecovery" data-value="2-3 frames" onclick="snapCheck(this)">2-3 Frames</button>
+                    <button class="check-btn" data-field="snapRecovery" data-value="lingered" onclick="snapCheck(this)">Lingered</button>
                 </div>
             </div>
-            
-            <div class="hierarchy-item">
-                <div class="hierarchy-num">3</div>
-                <div class="hierarchy-text">
-                    <strong>Release</strong>
-                    <span>Axis/hand changes - higher risk, requires feel</span>
+            <div class="snapshot-field">
+                <label>Emotional state during key moments</label>
+                <div class="check-group" id="snapEmotional">
+                    <button class="check-btn" data-field="snapEmotional" data-value="calm" onclick="snapCheck(this)">Calm</button>
+                    <button class="check-btn" data-field="snapEmotional" data-value="tight" onclick="snapCheck(this)">Tight</button>
+                    <button class="check-btn" data-field="snapEmotional" data-value="rushed" onclick="snapCheck(this)">Rushed</button>
                 </div>
             </div>
-            
-            <div class="hierarchy-item">
-                <div class="hierarchy-num">4</div>
-                <div class="hierarchy-text">
-                    <strong>Ball Change</strong>
-                    <span>Last resort - time consuming but sometimes necessary</span>
+        </div>
+
+        <!-- D. Outcome -->
+        <div class="snapshot-card">
+            <h2><span class="emoji">📊</span> D. Outcome</h2>
+            <div class="snapshot-row">
+                <div class="snapshot-field">
+                    <label>Average / Result</label>
+                    <input type="text" id="snapAverage" placeholder="e.g. 205 avg" onchange="saveSnapshot()">
+                </div>
+                <div class="snapshot-field">
+                    <label>Advanced / Cashed?</label>
+                    <div class="check-group" id="snapCashed">
+                        <button class="check-btn" data-field="snapCashed" data-value="yes" onclick="snapCheck(this)">Yes</button>
+                        <button class="check-btn" data-field="snapCashed" data-value="no" onclick="snapCheck(this)">No</button>
+                    </div>
                 </div>
             </div>
+            <div class="snapshot-field">
+                <label>Did outcome reflect execution?</label>
+                <div class="check-group" id="snapOutcomeReflect">
+                    <button class="check-btn" data-field="snapOutcomeReflect" data-value="yes" onclick="snapCheck(this)">Yes</button>
+                    <button class="check-btn" data-field="snapOutcomeReflect" data-value="partly" onclick="snapCheck(this)">Partly</button>
+                    <button class="check-btn" data-field="snapOutcomeReflect" data-value="no" onclick="snapCheck(this)">No</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- E. One-Line Truth -->
+        <div class="snapshot-card">
+            <h2><span class="emoji">📝</span> E. One-Line Truth</h2>
+            <div class="snapshot-field">
+                <label>Max one sentence - what's the truth?</label>
+                <textarea id="snapTruth" class="truth-input" placeholder="e.g. &quot;Reads were good, but moves came one game late.&quot;" onchange="saveSnapshot()"></textarea>
+            </div>
+            <p style="font-size:12px;color:#888;margin:8px 0 0 0;font-style:italic;">Stop there. No essays.</p>
         </div>
     </div>
-    
-    <!-- TAB: Codes Reference -->
-    <div id="codesTab" class="tab-content">
-        <div class="help-card">
-            <h2>What I Saw</h2>
-            <p style="font-size:13px;color:#666;margin-bottom:12px;">Scale: <strong>-2, -1, 0, +1, +2</strong> where 0 = as expected</p>
-            
-            <table class="help-table">
-                <tr>
-                    <th>Code</th>
-                    <th>Negative (−)</th>
-                    <th>Positive (+)</th>
-                </tr>
-                <tr>
-                    <td><span class="badge saw">D</span></td>
-                    <td>← Left of target</td>
-                    <td>Right of target →</td>
-                </tr>
-                <tr>
-                    <td><span class="badge saw">H</span></td>
-                    <td>Late (held too long)</td>
-                    <td>Early (grabbed quick)</td>
-                </tr>
-                <tr>
-                    <td><span class="badge saw">S</span></td>
-                    <td>Slow</td>
-                    <td>Fast</td>
-                </tr>
-            </table>
+
+    <!-- TAB: Help & Documentation -->
+    <div id="helpTab" class="tab-content">
+        <!-- Help sub-tabs -->
+        <div class="help-tabs">
+            <button class="help-tab-btn active" onclick="switchHelpTab('decisions')">Decisions</button>
+            <button class="help-tab-btn" onclick="switchHelpTab('codes')">Codes</button>
+            <button class="help-tab-btn" onclick="switchHelpTab('ptq')">PTQ Plan</button>
+            <button class="help-tab-btn" onclick="switchHelpTab('training')">Training</button>
         </div>
-        
-        <div class="help-card">
-            <h2>Line Adjustments</h2>
-            <table class="help-table">
-                <tr>
-                    <th>Code</th>
-                    <th>Values</th>
-                    <th>Meaning</th>
-                </tr>
-                <tr>
-                    <td><span class="badge line">Feet</span></td>
-                    <td>boards (+/−)</td>
-                    <td>− left, + right</td>
-                </tr>
-                <tr>
-                    <td><span class="badge line">Tgt</span></td>
-                    <td>boards (+/−)</td>
-                    <td>− left, + right</td>
-                </tr>
-                <tr>
-                    <td><span class="badge line">Loft</span></td>
-                    <td>0, 1, 2</td>
-                    <td>0=line, 1=mid, 2=deep</td>
-                </tr>
-            </table>
+
+        <!-- SECTION: Decision Tree -->
+        <div id="helpDecisions" class="help-section active">
+            <div class="help-card">
+                <h2>If I See → Then Try</h2>
+                <table class="help-table">
+                    <tr>
+                        <th>What I See</th>
+                        <th>Adjustment Options</th>
+                    </tr>
+                    <tr>
+                        <td>Ball right (D+)</td>
+                        <td>Feet RIGHT or target LEFT</td>
+                    </tr>
+                    <tr>
+                        <td>Ball left (D-)</td>
+                        <td>Feet LEFT or target RIGHT</td>
+                    </tr>
+                    <tr>
+                        <td>Hook EARLY (H+)</td>
+                        <td>1) More loft 2) More speed 3) Move left 4) Softer hand</td>
+                    </tr>
+                    <tr>
+                        <td>Hook LATE (H-)</td>
+                        <td>1) Less loft 2) Less speed 3) Move right 4) Firmer hand</td>
+                    </tr>
+                    <tr>
+                        <td>Too FAST (S+)</td>
+                        <td>Slow tempo, softer push, relax</td>
+                    </tr>
+                    <tr>
+                        <td>Too SLOW (S-)</td>
+                        <td>Quicker tempo, longer push</td>
+                    </tr>
+                    <tr>
+                        <td>Early + Left</td>
+                        <td>Move left, add loft, loft gutter cap</td>
+                    </tr>
+                    <tr>
+                        <td>Late + Right</td>
+                        <td>Move right, less loft, stronger ball</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="help-card">
+                <h2>Release Adjustments</h2>
+                <table class="help-table">
+                    <tr>
+                        <th>Adjustment</th>
+                        <th>Effect</th>
+                    </tr>
+                    <tr>
+                        <td>Axis 0° (up)</td>
+                        <td>End-over-end, earliest hook, most hook potential</td>
+                    </tr>
+                    <tr>
+                        <td>Axis 45° (behind)</td>
+                        <td>Balanced roll, standard release</td>
+                    </tr>
+                    <tr>
+                        <td>Axis 90° (around)</td>
+                        <td>Skids longer, less total hook, good for dry</td>
+                    </tr>
+                    <tr>
+                        <td>Pinky curl ↑</td>
+                        <td>More axis rotation, more backend snap</td>
+                    </tr>
+                    <tr>
+                        <td>Pinky curl ↓</td>
+                        <td>Cleaner, more predictable</td>
+                    </tr>
+                    <tr>
+                        <td>Soft hand</td>
+                        <td>Later release, more loft, less rev</td>
+                    </tr>
+                    <tr>
+                        <td>Hard hand</td>
+                        <td>Earlier release, cleaner, more rev</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="help-card">
+                <h2>Ball Selection</h2>
+                <table class="help-table">
+                    <tr>
+                        <th>Ball/Setup</th>
+                        <th>When to Use</th>
+                    </tr>
+                    <tr>
+                        <td>Pearl</td>
+                        <td>Medium-dry, fried heads, need length</td>
+                    </tr>
+                    <tr>
+                        <td>Solid</td>
+                        <td>Fresh oil, heavy volume, need control</td>
+                    </tr>
+                    <tr>
+                        <td>Hybrid</td>
+                        <td>Balanced: some length + continuous motion</td>
+                    </tr>
+                    <tr>
+                        <td>Urethane</td>
+                        <td>Early read, control over/under, sport shots</td>
+                    </tr>
+                    <tr>
+                        <td>Pin UP</td>
+                        <td>More length, more backend, higher flare</td>
+                    </tr>
+                    <tr>
+                        <td>Pin DOWN</td>
+                        <td>Earlier roll, smoother arc, lower flare</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="help-card">
+                <h2>Adjustment Hierarchy</h2>
+                <p style="font-size:13px;color:#666;margin-bottom:12px;">Try in this order - exhaust simpler options first</p>
+
+                <div class="hierarchy-item">
+                    <div class="hierarchy-num">1</div>
+                    <div class="hierarchy-text">
+                        <strong>Line First</strong>
+                        <span>Feet/target moves - lowest risk, easiest to execute</span>
+                    </div>
+                </div>
+
+                <div class="hierarchy-item">
+                    <div class="hierarchy-num">2</div>
+                    <div class="hierarchy-text">
+                        <strong>Loft / Speed</strong>
+                        <span>Physical adjustments - moderate risk</span>
+                    </div>
+                </div>
+
+                <div class="hierarchy-item">
+                    <div class="hierarchy-num">3</div>
+                    <div class="hierarchy-text">
+                        <strong>Release</strong>
+                        <span>Axis/hand changes - higher risk, requires feel</span>
+                    </div>
+                </div>
+
+                <div class="hierarchy-item">
+                    <div class="hierarchy-num">4</div>
+                    <div class="hierarchy-text">
+                        <strong>Ball Change</strong>
+                        <span>Last resort - time consuming but sometimes necessary</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div class="help-card">
-            <h2>Release Adjustments</h2>
-            <table class="help-table">
-                <tr>
-                    <th>Code</th>
-                    <th>Values</th>
-                    <th>Meaning</th>
-                </tr>
-                <tr>
-                    <td><span class="badge release">Axis</span></td>
-                    <td>0, 45, 90</td>
-                    <td>0°=up, 45°=behind, 90°=around</td>
-                </tr>
-                <tr>
-                    <td><span class="badge release">Pky</span></td>
-                    <td>0, 1, 2</td>
-                    <td>Pinky: 0=none, 1=some, 2=full</td>
-                </tr>
-                <tr>
-                    <td><span class="badge release">Hand</span></td>
-                    <td>S, H</td>
-                    <td>S=soft, H=hard</td>
-                </tr>
-            </table>
+
+        <!-- SECTION: Recording Codes -->
+        <div id="helpCodes" class="help-section">
+            <div class="help-card">
+                <h2>What I Saw</h2>
+                <p style="font-size:13px;color:#666;margin-bottom:12px;">Scale: <strong>-2, -1, 0, +1, +2</strong> where 0 = as expected</p>
+
+                <table class="help-table">
+                    <tr>
+                        <th>Code</th>
+                        <th>Negative (−)</th>
+                        <th>Positive (+)</th>
+                    </tr>
+                    <tr>
+                        <td><span class="badge saw">D</span></td>
+                        <td>← Left of target</td>
+                        <td>Right of target →</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge saw">H</span></td>
+                        <td>Late (held too long)</td>
+                        <td>Early (grabbed quick)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge saw">S</span></td>
+                        <td>Slow</td>
+                        <td>Fast</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="help-card">
+                <h2>Line Adjustments</h2>
+                <table class="help-table">
+                    <tr>
+                        <th>Code</th>
+                        <th>Values</th>
+                        <th>Meaning</th>
+                    </tr>
+                    <tr>
+                        <td><span class="badge line">Feet</span></td>
+                        <td>boards (+/−)</td>
+                        <td>− left, + right</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge line">Tgt</span></td>
+                        <td>boards (+/−)</td>
+                        <td>− left, + right</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge line">Loft</span></td>
+                        <td>0, 1, 2</td>
+                        <td>0=line, 1=mid, 2=deep</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="help-card">
+                <h2>Release Adjustments</h2>
+                <table class="help-table">
+                    <tr>
+                        <th>Code</th>
+                        <th>Values</th>
+                        <th>Meaning</th>
+                    </tr>
+                    <tr>
+                        <td><span class="badge release">Axis</span></td>
+                        <td>0, 45, 90</td>
+                        <td>0°=up, 45°=behind, 90°=around</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge release">Pky</span></td>
+                        <td>0, 1, 2</td>
+                        <td>Pinky: 0=none, 1=some, 2=full</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge release">Hand</span></td>
+                        <td>S, H</td>
+                        <td>S=soft, H=hard</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="help-card">
+                <h2>State</h2>
+                <table class="help-table">
+                    <tr>
+                        <th>Code</th>
+                        <th>Values</th>
+                    </tr>
+                    <tr>
+                        <td><span class="badge state">Mood</span></td>
+                        <td>😊 focused &nbsp; 😐 neutral &nbsp; 😤 frustrated</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge state">Conf</span></td>
+                        <td>H high &nbsp; M medium &nbsp; L low</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="help-card">
+                <h2>Equipment Codes</h2>
+                <table class="help-table">
+                    <tr>
+                        <th>Field</th>
+                        <th>Options</th>
+                    </tr>
+                    <tr>
+                        <td>Pin</td>
+                        <td>U (up) / D (down)</td>
+                    </tr>
+                    <tr>
+                        <td>Cover</td>
+                        <td>P (pearl) / S (solid) / H (hybrid) / U (urethane)</td>
+                    </tr>
+                    <tr>
+                        <td>Surface</td>
+                        <td>500, 1000, 2000, 3000, 4000, 5000, polish</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="help-card">
+                <h2>Video Review</h2>
+                <p style="font-size:14px;line-height:1.6;">
+                    After the game, compare each shot to video:<br><br>
+                    <strong style="color:#27ae60;">✓ V = Video confirms</strong> your read was correct<br>
+                    <strong style="color:#e74c3c;">✗ X = Misread</strong> - you saw it wrong<br><br>
+                    Look for patterns in your X's. Where do they cluster?
+                </p>
+            </div>
         </div>
-        
-        <div class="help-card">
-            <h2>State</h2>
-            <table class="help-table">
-                <tr>
-                    <th>Code</th>
-                    <th>Values</th>
-                </tr>
-                <tr>
-                    <td><span class="badge state">Mood</span></td>
-                    <td>😊 focused &nbsp; 😐 neutral &nbsp; 😤 frustrated</td>
-                </tr>
-                <tr>
-                    <td><span class="badge state">Conf</span></td>
-                    <td>H high &nbsp; M medium &nbsp; L low</td>
-                </tr>
-            </table>
+
+        <!-- SECTION: PTQ Micro-Plan -->
+        <div id="helpPtq" class="help-section">
+            <div class="help-card">
+                <h2>PTQ-Week Micro-Plan</h2>
+                <p style="font-size:13px;color:#666;margin-bottom:15px;">Travel-aware preparation guide</p>
+
+                <h3 style="margin-top:0;">🛫 Pre-Travel (Week -1)</h3>
+                <ul style="font-size:13px;margin:8px 0 15px 0;padding-left:20px;color:#444;">
+                    <li>1–2 Perth sessions max (quality only)</li>
+                    <li>Mental prep: visualize PTQ patterns, simulate first-game nerves</li>
+                    <li>Light gym / mobility; avoid heavy fatigue</li>
+                </ul>
+
+                <h3>✈️ Arrival + Adjustment (Day 1–3)</h3>
+                <ul style="font-size:13px;margin:8px 0 15px 0;padding-left:20px;color:#444;">
+                    <li>Adjust to time zone / sleep</li>
+                    <li>Light lane sessions (30–60 min), focusing on feel</li>
+                    <li>Record decisions only — no heavy PTQ simulation</li>
+                    <li>Skip high-stakes practice — energy preservation</li>
+                </ul>
+
+                <h3>🏁 Pre-PTQ Tuning (Day 4–7)</h3>
+                <ul style="font-size:13px;margin:8px 0 15px 0;padding-left:20px;color:#444;">
+                    <li>PTQ simulation sessions: 3–4 short blocks, 3 games each</li>
+                    <li>Complete snapshot after each block</li>
+                    <li>Focus on: first-ball consistency, early moves, spare conversions</li>
+                    <li>Video optional if alley rules allow</li>
+                </ul>
+
+                <h3>🥇 PTQ Competition Days</h3>
+                <ul style="font-size:13px;margin:8px 0 15px 0;padding-left:20px;color:#444;">
+                    <li>Warm-up: light 15–20 min block only</li>
+                    <li>Pre-block routine + focus on <strong>process metrics only</strong></li>
+                    <li>Complete snapshot after each block</li>
+                    <li>Post-day: identify <strong>1 controllable adjustment</strong> for next day</li>
+                </ul>
+
+                <h3>📊 Post-PTQ Recovery</h3>
+                <ul style="font-size:13px;margin:8px 0 0 0;padding-left:20px;color:#444;">
+                    <li>10–15 min reflection: what went well, what was controllable</li>
+                    <li>Maintain execution over results mindset</li>
+                    <li>Optional light lane session or mental rehearsal</li>
+                </ul>
+            </div>
+
+            <div class="help-card">
+                <h2>Practical Notes</h2>
+                <table class="help-table">
+                    <tr>
+                        <td style="font-weight:600;">Transit</td>
+                        <td>Factor Uber + alley access into energy budget; shorter, sharper sessions > long wasted time</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600;">Variety</td>
+                        <td>Limited oil / alley variety = bonus chaos practice; helps PTQs where patterns differ</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600;">Data Focus</td>
+                        <td>Data + decisions > pinfall. Snapshot + video is what matters, not average</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight:600;">Focus Lever</td>
+                        <td>Pick <strong>1 major adjustment per block</strong>, don't try to fix everything</td>
+                    </tr>
+                </table>
+            </div>
         </div>
-        
-        <div class="help-card">
-            <h2>Equipment Codes</h2>
-            <table class="help-table">
-                <tr>
-                    <th>Field</th>
-                    <th>Options</th>
-                </tr>
-                <tr>
-                    <td>Pin</td>
-                    <td>U (up) / D (down)</td>
-                </tr>
-                <tr>
-                    <td>Cover</td>
-                    <td>P (pearl) / S (solid) / H (hybrid) / U (urethane)</td>
-                </tr>
-                <tr>
-                    <td>Surface</td>
-                    <td>500, 1000, 2000, 3000, 4000, 5000, polish</td>
-                </tr>
-            </table>
-        </div>
-        
-        <div class="help-card">
-            <h2>Video Review</h2>
-            <p style="font-size:14px;line-height:1.6;">
-                After the game, compare each shot to video:<br><br>
-                <strong style="color:#27ae60;">✓ V = Video confirms</strong> your read was correct<br>
-                <strong style="color:#e74c3c;">✗ X = Misread</strong> - you saw it wrong<br><br>
-                Look for patterns in your X's. Where do they cluster?
-            </p>
+
+        <!-- SECTION: Training Adjustments -->
+        <div id="helpTraining" class="help-section">
+            <div class="help-card">
+                <h2>Training Adjustment Loop</h2>
+                <p style="font-size:13px;color:#666;margin-bottom:12px;">Pick <strong>one primary adjustment</strong> per cycle. More = noise.</p>
+            </div>
+
+            <div class="help-card">
+                <h2>1. Shot Execution Weak</h2>
+                <p style="font-size:12px;color:#666;margin-bottom:10px;"><strong>Signals:</strong> Pocket hit &lt;60%, consistent miss pattern, unpredictable ball motion</p>
+                <h3 style="margin-top:0;">Training Focus (choose one):</h3>
+                <ul style="font-size:13px;margin:8px 0 0 0;padding-left:20px;color:#444;">
+                    <li><strong>Target window drill:</strong> 10 shots at arrows ±1 board, reset after miss</li>
+                    <li><strong>Breakpoint awareness:</strong> Call breakpoint out loud before release</li>
+                    <li><strong>Speed consistency:</strong> Same line, 10 shots within ±0.2 mph</li>
+                </ul>
+                <p style="font-size:12px;color:#888;margin:10px 0 0 0;font-style:italic;">Goal: tighten dispersion, not chase carry</p>
+            </div>
+
+            <div class="help-card">
+                <h2>2. Decision Quality Weak</h2>
+                <p style="font-size:12px;color:#666;margin-bottom:10px;"><strong>Signals:</strong> "Late" or "chased" circled, good execution but falling carry</p>
+                <h3 style="margin-top:0;">Training Focus:</h3>
+                <ul style="font-size:13px;margin:8px 0 0 0;padding-left:20px;color:#444;">
+                    <li><strong>Early-move simulation:</strong> Force a move after 3 frames even if striking</li>
+                    <li><strong>Two-ball limit games:</strong> Must solve the lane with only two balls</li>
+                    <li><strong>Predict-the-transition:</strong> Write expected move after game 1 → check game 2</li>
+                </ul>
+                <p style="font-size:12px;color:#888;margin:10px 0 0 0;font-style:italic;">Goal: make moving early feel normal, not risky</p>
+            </div>
+
+            <div class="help-card">
+                <h2>3. Mental / Routine Weak</h2>
+                <p style="font-size:12px;color:#666;margin-bottom:10px;"><strong>Signals:</strong> Routine breaks under pressure, recovery &gt;2 frames, tight starts</p>
+                <h3 style="margin-top:0;">Training Focus:</h3>
+                <ul style="font-size:13px;margin:8px 0 0 0;padding-left:20px;color:#444;">
+                    <li><strong>Game-1 pressure drill:</strong> First game counts — no warm-up frames</li>
+                    <li><strong>Reset routine practice:</strong> Deliberate pause + breath after bad shots</li>
+                    <li><strong>Consequences practice:</strong> Miss a spare → stop for 60 seconds</li>
+                </ul>
+                <p style="font-size:12px;color:#888;margin:10px 0 0 0;font-style:italic;">Goal: shorten the recovery window</p>
+            </div>
+
+            <div class="help-card">
+                <h2>4. Spare Shooting Weak</h2>
+                <p style="font-size:12px;color:#666;margin-bottom:10px;"><strong>Signals:</strong> "Sloppy" circled, avoidable opens noted, PTQ exits by &lt;20 pins</p>
+                <h3 style="margin-top:0;">Training Focus:</h3>
+                <ul style="font-size:13px;margin:8px 0 0 0;padding-left:20px;color:#444;">
+                    <li><strong>9-in-a-row single-pin rule</strong></li>
+                    <li><strong>First-ball-only spares:</strong> One attempt only — like competition</li>
+                    <li><strong>Pressure ladder:</strong> Make 1 → 2 → 3 → reset on miss</li>
+                </ul>
+                <p style="font-size:12px;color:#888;margin:10px 0 0 0;font-style:italic;">Goal: remove spares as a variable</p>
+            </div>
+
+            <div class="help-card">
+                <h2>5. Good Execution, Poor Results</h2>
+                <p style="font-size:12px;color:#666;margin-bottom:10px;"><strong>Signals:</strong> "Outcome didn't reflect execution", decision quality ≥2, mental stable</p>
+                <h3 style="margin-top:0;">Training Focus:</h3>
+                <ul style="font-size:13px;margin:8px 0 0 0;padding-left:20px;color:#444;">
+                    <li><strong>Nothing major. Maintain.</strong></li>
+                    <li>Light sessions</li>
+                    <li>Video review only</li>
+                </ul>
+                <p style="font-size:12px;color:#888;margin:10px 0 0 0;font-style:italic;">This is where restraint matters most</p>
+            </div>
+
+            <div class="help-card">
+                <h2>The Loop</h2>
+                <div class="hierarchy-item">
+                    <div class="hierarchy-num">1</div>
+                    <div class="hierarchy-text">
+                        <strong>Complete snapshot</strong>
+                        <span>After each PTQ / Regional / Tournament</span>
+                    </div>
+                </div>
+                <div class="hierarchy-item">
+                    <div class="hierarchy-num">2</div>
+                    <div class="hierarchy-text">
+                        <strong>Circle weakest section</strong>
+                        <span>Which area needs most attention?</span>
+                    </div>
+                </div>
+                <div class="hierarchy-item">
+                    <div class="hierarchy-num">3</div>
+                    <div class="hierarchy-text">
+                        <strong>Choose ONE training response</strong>
+                        <span>For the next week</span>
+                    </div>
+                </div>
+                <div class="hierarchy-item">
+                    <div class="hierarchy-num">4</div>
+                    <div class="hierarchy-text">
+                        <strong>Re-evaluate</strong>
+                        <span>After next block</span>
+                    </div>
+                </div>
+                <p style="font-size:12px;color:#666;margin:12px 0 0 0;">This avoids: overreacting to bad results, random training, emotional "fix everything" weeks</p>
+            </div>
         </div>
     </div>
     
     <!-- Bottom Tab Bar -->
     <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('tracker')">
+        <button class="tab-btn active" onclick="switchTab('tracker')" id="tabBtnTracker">
             <span class="icon">🎳</span>
-            Track
+            Shots
         </button>
-        <button class="tab-btn" onclick="switchTab('help')">
-            <span class="icon">🎯</span>
-            Decisions
+        <button class="tab-btn" onclick="switchTab('snapshot')" id="tabBtnSnapshot">
+            <span class="icon">📊</span>
+            Session
         </button>
-        <button class="tab-btn" onclick="switchTab('codes')">
-            <span class="icon">📋</span>
-            Codes
+        <button class="tab-btn" onclick="switchTab('help')" id="tabBtnHelp">
+            <span class="icon">📚</span>
+            Help
         </button>
     </div>
     
@@ -1071,16 +1630,19 @@
     
     <script>
         const STORAGE_KEY = 'laneread_';
+        const SNAPSHOT_KEY = 'laneread_snap_';
         let currentGameId = null;
+        let currentSnapshotId = null;
         let gameData = {};
-        
+        let snapshotData = {};
+
         // Frame structure
         const frames = [];
         for (let f = 1; f <= 9; f++) {
             frames.push({frame: f, shots: [1, 2]});
         }
         frames.push({frame: 10, shots: [1, 2, 3]});
-        
+
         // Column definitions
         const columns = [
             {id: 'D', class: 'saw-col', type: 'number', min: -2, max: 2},
@@ -1096,27 +1658,66 @@
             {id: 'Conf', class: 'state-col', type: 'select', options: ['', 'H', 'M', 'L']},
             {id: 'Notes', class: 'notes-cell', type: 'text'}
         ];
-        
+
         // Tab switching
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
+
             document.getElementById(tab + 'Tab').classList.add('active');
+            document.getElementById('tabBtn' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+
+            // Update header based on active pathway
+            const trackerHeader = document.getElementById('trackerHeader');
+            const snapshotHeader = document.getElementById('snapshotHeader');
+            const headerTitle = document.getElementById('headerTitle');
+
+            if (tab === 'tracker') {
+                trackerHeader.style.display = 'flex';
+                snapshotHeader.style.display = 'none';
+                headerTitle.textContent = '🎳 Shot Tracker';
+            } else if (tab === 'snapshot') {
+                trackerHeader.style.display = 'none';
+                snapshotHeader.style.display = 'flex';
+                headerTitle.textContent = '📊 Session Snapshot';
+            } else {
+                trackerHeader.style.display = 'none';
+                snapshotHeader.style.display = 'none';
+                headerTitle.textContent = '📚 Help & Reference';
+            }
+        }
+
+        // Help sub-tab switching
+        function switchHelpTab(section) {
+            document.querySelectorAll('.help-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.help-tab-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById('help' + section.charAt(0).toUpperCase() + section.slice(1)).classList.add('active');
             event.currentTarget.classList.add('active');
         }
         
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('gameDate').valueAsDate = new Date();
+            document.getElementById('snapDate').valueAsDate = new Date();
             renderShots();
             updateGameSelector();
-            
+            updateSnapshotSelector();
+
+            // Load most recent game
             const games = getSavedGames();
             if (games.length > 0) {
                 loadGame(games[0].id);
             } else {
                 newGame();
+            }
+
+            // Load most recent snapshot
+            const snapshots = getSavedSnapshots();
+            if (snapshots.length > 0) {
+                loadSnapshot(snapshots[0].id);
+            } else {
+                currentSnapshotId = 'snap_' + Date.now();
             }
         });
         
@@ -1359,11 +1960,16 @@
             document.getElementById('ballChanges').innerHTML = '';
             
             document.querySelectorAll('.shot-card').forEach(c => c.classList.add('collapsed'));
-            
+
             // Switch to tracker tab
-            switchTab('tracker');
-            document.querySelector('.tab-btn').click();
-            
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('trackerTab').classList.add('active');
+            document.getElementById('tabBtnTracker').classList.add('active');
+            document.getElementById('trackerHeader').style.display = 'flex';
+            document.getElementById('snapshotHeader').style.display = 'none';
+            document.getElementById('headerTitle').textContent = '🎳 Shot Tracker';
+
             saveGame();
             updateGameSelector();
             showToast('New game created');
@@ -1518,6 +2124,151 @@
             toast.textContent = msg;
             toast.classList.add('show');
             setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // ========== SNAPSHOT FUNCTIONS ==========
+
+        function snapCheck(btn) {
+            const field = btn.dataset.field;
+            const value = btn.dataset.value;
+
+            const siblings = document.querySelectorAll(`[data-field="${field}"]`);
+            siblings.forEach(s => s.classList.remove('selected'));
+
+            btn.classList.add('selected');
+            snapshotData[field] = value;
+            saveSnapshot();
+        }
+
+        function snapRating(btn) {
+            const field = btn.dataset.field;
+            const value = btn.dataset.value;
+
+            const siblings = document.querySelectorAll(`[data-field="${field}"]`);
+            siblings.forEach(s => s.classList.remove('selected'));
+
+            btn.classList.add('selected');
+            snapshotData[field] = value;
+            saveSnapshot();
+        }
+
+        function getSavedSnapshots() {
+            const snapshots = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith(SNAPSHOT_KEY)) {
+                    try {
+                        const data = JSON.parse(localStorage.getItem(key));
+                        snapshots.push({
+                            id: key.replace(SNAPSHOT_KEY, ''),
+                            date: data.snapDate || 'Unknown',
+                            location: data.snapLocation || '?',
+                            eventType: data.snapEventType || 'Session'
+                        });
+                    } catch (e) {}
+                }
+            }
+            snapshots.sort((a, b) => b.date.localeCompare(a.date));
+            return snapshots;
+        }
+
+        function updateSnapshotSelector() {
+            const sel = document.getElementById('snapshotSelector');
+            const snapshots = getSavedSnapshots();
+
+            sel.innerHTML = `<option value="">-- ${snapshots.length} Sessions --</option>`;
+            snapshots.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.date} | ${s.location} | ${s.eventType}`;
+                if (s.id === currentSnapshotId) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        function newSnapshot() {
+            currentSnapshotId = 'snap_' + Date.now();
+            snapshotData = {};
+
+            document.getElementById('snapDate').valueAsDate = new Date();
+            document.getElementById('snapLocation').value = '';
+            document.getElementById('snapGames').value = '';
+            document.getElementById('snapPattern').value = '';
+            document.getElementById('snapAverage').value = '';
+            document.getElementById('snapTruth').value = '';
+
+            document.querySelectorAll('#snapshotTab .check-btn.selected').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('#snapshotTab .rating-btn.selected').forEach(b => b.classList.remove('selected'));
+
+            // Switch to snapshot tab
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('snapshotTab').classList.add('active');
+            document.getElementById('tabBtnSnapshot').classList.add('active');
+            document.getElementById('trackerHeader').style.display = 'none';
+            document.getElementById('snapshotHeader').style.display = 'flex';
+            document.getElementById('headerTitle').textContent = '📊 Session Snapshot';
+
+            saveSnapshot();
+            updateSnapshotSelector();
+            showToast('New session created');
+        }
+
+        function saveSnapshot() {
+            if (!currentSnapshotId) return;
+
+            snapshotData.snapDate = document.getElementById('snapDate').value;
+            snapshotData.snapLocation = document.getElementById('snapLocation').value;
+            snapshotData.snapGames = document.getElementById('snapGames').value;
+            snapshotData.snapPattern = document.getElementById('snapPattern').value;
+            snapshotData.snapAverage = document.getElementById('snapAverage').value;
+            snapshotData.snapTruth = document.getElementById('snapTruth').value;
+
+            document.querySelectorAll('#snapshotTab .check-btn.selected, #snapshotTab .rating-btn.selected').forEach(btn => {
+                snapshotData[btn.dataset.field] = btn.dataset.value;
+            });
+
+            localStorage.setItem(SNAPSHOT_KEY + currentSnapshotId, JSON.stringify(snapshotData));
+            updateSnapshotSelector();
+        }
+
+        function loadSnapshot(id) {
+            if (!id) return;
+
+            const data = localStorage.getItem(SNAPSHOT_KEY + id);
+            if (!data) return;
+
+            currentSnapshotId = id;
+            snapshotData = JSON.parse(data);
+
+            document.getElementById('snapDate').value = snapshotData.snapDate || '';
+            document.getElementById('snapLocation').value = snapshotData.snapLocation || '';
+            document.getElementById('snapGames').value = snapshotData.snapGames || '';
+            document.getElementById('snapPattern').value = snapshotData.snapPattern || '';
+            document.getElementById('snapAverage').value = snapshotData.snapAverage || '';
+            document.getElementById('snapTruth').value = snapshotData.snapTruth || '';
+
+            document.querySelectorAll('#snapshotTab .check-btn.selected').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('#snapshotTab .rating-btn.selected').forEach(b => b.classList.remove('selected'));
+
+            Object.keys(snapshotData).forEach(key => {
+                const btn = document.querySelector(`#snapshotTab [data-field="${key}"][data-value="${snapshotData[key]}"]`);
+                if (btn) btn.classList.add('selected');
+            });
+
+            showToast('Session loaded');
+        }
+
+        function deleteSnapshot() {
+            if (!currentSnapshotId) return;
+            if (!confirm('Delete this session?')) return;
+
+            localStorage.removeItem(SNAPSHOT_KEY + currentSnapshotId);
+            currentSnapshotId = null;
+            snapshotData = {};
+            updateSnapshotSelector();
+            newSnapshot();
+            showToast('Session deleted');
         }
     </script>
 </body>
