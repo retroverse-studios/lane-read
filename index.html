@@ -748,6 +748,97 @@
             margin: 15px 0;
         }
 
+        /* Home/Landing page */
+        .home-container {
+            padding: 20px 15px;
+            min-height: calc(100vh - 140px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .home-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .home-title h2 {
+            font-size: 24px;
+            margin: 0 0 8px 0;
+            color: #333;
+        }
+
+        .home-title p {
+            font-size: 14px;
+            color: #666;
+            margin: 0;
+        }
+
+        .pathway-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .pathway-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 24px 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            border: 2px solid transparent;
+        }
+
+        .pathway-card:active {
+            transform: scale(0.98);
+        }
+
+        .pathway-card.shots {
+            border-color: var(--saw);
+        }
+
+        .pathway-card.session {
+            border-color: var(--snapshot);
+        }
+
+        .pathway-card .card-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+
+        .pathway-card h3 {
+            margin: 0 0 8px 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .pathway-card p {
+            margin: 0;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .pathway-card .card-tag {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .pathway-card.shots .card-tag {
+            background: var(--saw-light);
+            color: var(--saw);
+        }
+
+        .pathway-card.session .card-tag {
+            background: var(--snapshot-light);
+            color: var(--snapshot);
+        }
+
         /* Status toast */
         .toast {
             position: fixed;
@@ -795,6 +886,7 @@
             .remove-btn,
             .expand-btn,
             .toast,
+            #homeTab,
             #helpTab {
                 display: none !important;
             }
@@ -839,7 +931,7 @@
 <body>
     <div class="header">
         <h1 id="headerTitle">🎳 LaneRead</h1>
-        <div class="header-row" id="trackerHeader">
+        <div class="header-row" id="trackerHeader" style="display:none;">
             <select id="gameSelector" onchange="loadGame(this.value)">
                 <option value="">-- Select Game --</option>
             </select>
@@ -860,9 +952,33 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- TAB: Home/Landing -->
+    <div id="homeTab" class="tab-content active">
+        <div class="home-container">
+            <div class="home-title">
+                <h2>Welcome to LaneRead</h2>
+                <p>Choose how you want to track your performance</p>
+            </div>
+            <div class="pathway-cards">
+                <div class="pathway-card shots" onclick="switchTab('tracker')">
+                    <div class="card-icon">🎳</div>
+                    <h3>Shot Decision Tracker</h3>
+                    <p>Record every shot during a game. Track what you saw, your adjustments, and review against video later.</p>
+                    <span class="card-tag">Detailed • Per-Shot</span>
+                </div>
+                <div class="pathway-card session" onclick="switchTab('snapshot')">
+                    <div class="card-icon">📊</div>
+                    <h3>Session Snapshot</h3>
+                    <p>Quick post-session assessment. Evaluate execution, decisions, and mental game in one page.</p>
+                    <span class="card-tag">Quick • Post-Session</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- TAB: Tracker -->
-    <div id="trackerTab" class="tab-content active">
+    <div id="trackerTab" class="tab-content">
         <!-- Equipment -->
         <div class="equipment-card">
             <h2>Equipment</h2>
@@ -1612,7 +1728,11 @@
     
     <!-- Bottom Tab Bar -->
     <div class="tab-bar">
-        <button class="tab-btn active" onclick="switchTab('tracker')" id="tabBtnTracker">
+        <button class="tab-btn active" onclick="switchTab('home')" id="tabBtnHome">
+            <span class="icon">🏠</span>
+            Home
+        </button>
+        <button class="tab-btn" onclick="switchTab('tracker')" id="tabBtnTracker">
             <span class="icon">🎳</span>
             Shots
         </button>
@@ -1672,7 +1792,11 @@
             const snapshotHeader = document.getElementById('snapshotHeader');
             const headerTitle = document.getElementById('headerTitle');
 
-            if (tab === 'tracker') {
+            if (tab === 'home') {
+                trackerHeader.style.display = 'none';
+                snapshotHeader.style.display = 'none';
+                headerTitle.textContent = '🎳 LaneRead';
+            } else if (tab === 'tracker') {
                 trackerHeader.style.display = 'flex';
                 snapshotHeader.style.display = 'none';
                 headerTitle.textContent = '🎳 Shot Tracker';
