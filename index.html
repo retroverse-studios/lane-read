@@ -839,6 +839,68 @@
             color: var(--snapshot);
         }
 
+        /* Data Management */
+        .data-management {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .data-management h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+
+        .data-stats {
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+            margin: 0 0 15px 0;
+        }
+
+        .data-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .data-btn {
+            flex: 1;
+            max-width: 100px;
+            padding: 12px 8px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: white;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .data-btn span {
+            font-size: 20px;
+        }
+
+        .data-btn:active {
+            background: #f5f5f5;
+            transform: scale(0.98);
+        }
+
+        .data-btn.export { border-color: var(--line); color: var(--line); }
+        .data-btn.import { border-color: var(--saw); color: var(--saw); }
+        .data-btn.clear { border-color: #e74c3c; color: #e74c3c; }
+
+        .data-note {
+            text-align: center;
+            font-size: 11px;
+            color: #aaa;
+            margin: 12px 0 0 0;
+        }
+
         /* Status toast */
         .toast {
             position: fixed;
@@ -973,6 +1035,25 @@
                     <p>Quick post-session assessment. Evaluate execution, decisions, and mental game in one page.</p>
                     <span class="card-tag">Quick • Post-Session</span>
                 </div>
+            </div>
+
+            <!-- Data Management -->
+            <div class="data-management">
+                <h4>Your Data</h4>
+                <p class="data-stats" id="dataStats">Loading...</p>
+                <div class="data-buttons">
+                    <button class="data-btn export" onclick="exportAllData()">
+                        <span>📤</span> Export
+                    </button>
+                    <button class="data-btn import" onclick="document.getElementById('importFile').click()">
+                        <span>📥</span> Import
+                    </button>
+                    <button class="data-btn clear" onclick="clearAllData()">
+                        <span>🗑️</span> Clear All
+                    </button>
+                </div>
+                <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+                <p class="data-note">Data is stored locally on this device. Export regularly to back up.</p>
             </div>
         </div>
     </div>
@@ -1827,6 +1908,7 @@
             renderShots();
             updateGameSelector();
             updateSnapshotSelector();
+            updateDataStats();
 
             // Load most recent game
             const games = getSavedGames();
@@ -2393,6 +2475,166 @@
             updateSnapshotSelector();
             newSnapshot();
             showToast('Session deleted');
+        }
+
+        // ========== DATA MANAGEMENT ==========
+
+        function updateDataStats() {
+            const games = getSavedGames();
+            const snapshots = getSavedSnapshots();
+            const statsEl = document.getElementById('dataStats');
+            if (statsEl) {
+                statsEl.textContent = `${games.length} games • ${snapshots.length} sessions saved`;
+            }
+        }
+
+        function exportAllData() {
+            const exportData = {
+                version: 1,
+                exportDate: new Date().toISOString(),
+                games: {},
+                snapshots: {}
+            };
+
+            // Collect all games
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith(STORAGE_KEY) && !key.startsWith(SNAPSHOT_KEY)) {
+                    try {
+                        exportData.games[key] = JSON.parse(localStorage.getItem(key));
+                    } catch (e) {}
+                }
+            }
+
+            // Collect all snapshots
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith(SNAPSHOT_KEY)) {
+                    try {
+                        exportData.snapshots[key] = JSON.parse(localStorage.getItem(key));
+                    } catch (e) {}
+                }
+            }
+
+            const dataStr = JSON.stringify(exportData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            // Try native share first (mobile), fall back to download
+            const fileName = `laneread-backup-${new Date().toISOString().split('T')[0]}.json`;
+
+            if (navigator.share && navigator.canShare) {
+                const file = new File([blob], fileName, { type: 'application/json' });
+                if (navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: 'LaneRead Backup',
+                        text: 'My LaneRead data backup'
+                    }).catch(() => {
+                        // Fall back to download
+                        downloadFile(url, fileName);
+                    });
+                    return;
+                }
+            }
+
+            downloadFile(url, fileName);
+        }
+
+        function downloadFile(url, fileName) {
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Data exported');
+        }
+
+        function importData(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+
+                    if (!data.version || !data.games || !data.snapshots) {
+                        throw new Error('Invalid backup file');
+                    }
+
+                    const gameCount = Object.keys(data.games).length;
+                    const snapCount = Object.keys(data.snapshots).length;
+
+                    if (!confirm(`Import ${gameCount} games and ${snapCount} sessions?\n\nThis will merge with existing data.`)) {
+                        input.value = '';
+                        return;
+                    }
+
+                    // Import games
+                    Object.keys(data.games).forEach(key => {
+                        localStorage.setItem(key, JSON.stringify(data.games[key]));
+                    });
+
+                    // Import snapshots
+                    Object.keys(data.snapshots).forEach(key => {
+                        localStorage.setItem(key, JSON.stringify(data.snapshots[key]));
+                    });
+
+                    updateGameSelector();
+                    updateSnapshotSelector();
+                    updateDataStats();
+                    showToast(`Imported ${gameCount} games, ${snapCount} sessions`);
+
+                } catch (err) {
+                    alert('Error importing data: ' + err.message);
+                }
+
+                input.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function clearAllData() {
+            const games = getSavedGames();
+            const snapshots = getSavedSnapshots();
+
+            if (games.length === 0 && snapshots.length === 0) {
+                showToast('No data to clear');
+                return;
+            }
+
+            if (!confirm(`Delete ALL data?\n\n${games.length} games\n${snapshots.length} sessions\n\nThis cannot be undone!`)) {
+                return;
+            }
+
+            // Double confirm for safety
+            if (!confirm('Are you absolutely sure? Export your data first if you want to keep it.')) {
+                return;
+            }
+
+            // Clear all laneread data
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith(STORAGE_KEY) || key.startsWith(SNAPSHOT_KEY)) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+
+            // Reset state
+            currentGameId = null;
+            currentSnapshotId = null;
+            gameData = {};
+            snapshotData = {};
+
+            updateGameSelector();
+            updateSnapshotSelector();
+            updateDataStats();
+            showToast('All data cleared');
         }
     </script>
 </body>
